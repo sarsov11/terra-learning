@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>테라러닝</title>
+<meta name="description" content="대입·공무원·자격증·취업 시험을 한 곳에서. 오늘 할 것만 골라 주는 시험 공부.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--bg:#FFFFFF;--panel:#F5F3F3;--line:#E4DFDF;--ink:#111111;--sub:#4B5563;--red:#C8102E;--red-soft:#FCE9EC;--ok:#15803D}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif;font-weight:500;line-height:1.5;
+  padding-inline:16px;padding-block:calc(env(safe-area-inset-top,0px) + 20px) calc(env(safe-area-inset-bottom,0px) + 48px)}
+.wrap{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-weight:900;font-size:20px;letter-spacing:-.02em}
+.logo span{color:var(--red)}
+h1{font-size:clamp(26px,5.4vw,40px);font-weight:900;letter-spacing:-.03em;line-height:1.2;margin:0;text-wrap:balance}
+.lead{margin:0;color:var(--sub);font-size:16px;font-weight:600}
+a{color:inherit}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{font:inherit;font-weight:800;font-size:15px;border:0;border-radius:999px;padding:9px 16px;background:var(--panel);color:var(--ink);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--ink);color:#fff}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.item{display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:14px;background:var(--panel);text-decoration:none;min-height:118px}
+.item b{font-size:18px;font-weight:900}
+.item small{font-size:13.5px;color:var(--sub);font-weight:600}
+.item .go{margin-top:auto;font-weight:900;color:var(--red);font-size:14px}
+.item.off{background:transparent;border:2px dashed var(--line)}
+.item.off .go{color:var(--sub)}
+a.item:hover{background:var(--red-soft)}
+.brand{font-size:12.5px;font-weight:800;color:var(--red)}
+.field{display:flex;flex-direction:column;gap:10px}
+.field h2{margin:0;font-size:21px;font-weight:900;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.field h2 span{font-size:13.5px;color:var(--sub);font-weight:700}
+/* B */
+.who{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.who button{font:inherit;text-align:left;border:0;border-radius:16px;background:var(--panel);padding:18px 16px;min-height:96px;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.who button b{font-size:19px;font-weight:900}
+.who button small{font-size:13px;color:var(--sub);font-weight:700}
+.who button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.who button[aria-pressed="true"] small{color:#D1D5DB}
+/* C */
+.search{display:flex;gap:8px}
+.search input{flex:1;min-width:0;font:inherit;font-size:18px;font-weight:700;padding:15px 16px;border-radius:14px;border:2px solid var(--ink);background:#fff;color:var(--ink)}
+.list{display:flex;flex-direction:column;border-top:2px solid var(--ink)}
+.li{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:13px 2px;border-bottom:1px solid var(--line);text-decoration:none}
+.li b{font-size:17px;font-weight:900}
+.li small{display:block;color:var(--sub);font-size:13px;font-weight:600}
+.tag{font-size:12.5px;font-weight:900;padding:3px 10px;border-radius:6px;white-space:nowrap}
+.tag.on{background:var(--red);color:#fff}
+.tag.off{background:var(--panel);color:var(--sub)}
+.empty{color:var(--sub);font-weight:700;padding:16px 2px}
+nav.sian{display:flex;gap:6px;flex-wrap:wrap;background:#111;padding:8px;border-radius:12px}
+nav.sian a{color:#fff;text-decoration:none;font-weight:800;font-size:14px;padding:6px 12px;border-radius:8px}
+nav.sian a[aria-current="true"]{background:var(--red)}
+footer{color:var(--sub);font-size:13px;font-weight:600;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+const DATA = {"분야": [{"id": "daeip", "이름": "대입", "브랜드": "모두의 대입", "대상": "고등학생", "종목": [{"이름": "통합사회", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-tongsa/"}, {"이름": "한국사", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-hanguksa/"}, {"이름": "통합과학", "설명": "", "상태": "준비", "주소": null}, {"이름": "수학", "설명": "", "상태": "준비", "주소": null}, {"이름": "영어", "설명": "", "상태": "구상", "주소": null}, {"이름": "진로", "설명": "", "상태": "구상", "주소": null}]}, {"id": "gongsi", "이름": "공무원", "브랜드": "진격의 공시", "대상": "공시생", "종목": [{"이름": "9급 공채", "설명": "국가직·지방직 일반행정", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "9급 전문직렬", "설명": "세무·교정·검찰·관세·교육·복지 등", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "경찰", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "소방", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "군무원", "설명": "9급 행정·군수·수사·전산", "상태": "수집", "주소": null}, {"이름": "해양경찰", "설명": "", "상태": "수집", "주소": null}]}, {"id": "jagyeok", "이름": "자격증", "브랜드": "모두의 기사 · 모두의 자격", "대상": "성인 수험생", "종목": [{"이름": "기사·산업기사", "설명": "건축·건설안전·건축설비·위험물", "상태": "운영", "주소": "https://sarsov11.github.io/modu-gisa/"}, {"이름": "기능사", "설명": "지게차·굴착기·조리·제과제빵 등", "상태": "수집", "주소": null}, {"이름": "공인중개사", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-junggae/"}, {"이름": "전문자격", "설명": "주택관리사·물류관리사·행정사·손해평가사·경비지도사·사회복지사1급 등", "상태": "수집", "주소": null}, {"이름": "회계·세무", "설명": "전산회계·전산세무 이론, 회계 분개 드릴", "상태": "구상", "주소": null}, {"이름": "데이터·IT", "설명": "ADsP·SQLD·컴활 필기", "상태": "구상", "주소": null}]}, {"id": "chwieop", "이름": "취업", "브랜드": "진격의 NCS", "대상": "취업 준비생", "종목": [{"이름": "공기업 NCS", "설명": "지원기업별 맞춤 학습", "상태": "구상", "주소": null}, {"이름": "군 간부 선발", "설명": "부사관·ROTC·학사장교 간부선발도구", "상태": "구상", "주소": null}]}, {"id": "jeonmunjik", "이름": "전문직 1차", "브랜드": "모두의 전문직", "대상": "전문직 수험생", "종목": [{"이름": "세무사 1차", "설명": "", "상태": "구상", "주소": null}, {"이름": "공인회계사 1차", "설명": "", "상태": "구상", "주소": null}, {"이름": "감정평가사 1차", "설명": "", "상태": "구상", "주소": null}, {"이름": "공인노무사 1차", "설명": "", "상태": "구상", "주소": null}]}, {"id": "free", "이름": "무료", "브랜드": "테라러닝", "대상": "누구나", "종목": [{"이름": "운전면허 학과", "설명": "공개 문제은행 1,000문항", "상태": "구상", "주소": null}]}]};
+const FIELDS = DATA.분야;
+const SIAN = /*SIAN*/false;
+const V = (new URLSearchParams(location.search).get('v') || location.hash.slice(1) || 'a').toLowerCase();
+addEventListener('hashchange', () => location.reload());
+const app = document.getElementById('app');
+const esc = s => String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const 열림 = x => x.상태 === '운영' && x.주소;
+const item = (x, brand) => 열림(x)
+  ? `<a class="item" href="${esc(x.주소)}">${brand?`<span class="brand">${esc(brand)}</span>`:''}<b>${esc(x.이름)}</b><small>${esc(x.설명||'')}</small><span class="go">시작하기</span></a>`
+  : `<div class="item off">${brand?`<span class="brand">${esc(brand)}</span>`:''}<b>${esc(x.이름)}</b><small>${esc(x.설명||'')}</small><span class="go">준비 중</span></div>`;
+const head = `<header><div class="logo">테라<span>러닝</span></div></header>`;
+const bar = SIAN ? `<nav class="sian" aria-label="시안">${[['a','A 분야 칩'],['b','B 나는 누구'],['c','C 검색']].map(([k,l])=>`<a href="#${k}" aria-current="${k===V}">${l}</a>`).join('')}</nav>` : '';
+const foot = bar + `<footer>테라러닝 · 기출은 시행기관 공개 자료(출처 표시)로 만듭니다.</footer>`;
+
+function viewA(){
+  let pick = FIELDS[0].id;
+  const draw = () => {
+    const f = FIELDS.find(f=>f.id===pick);
+    app.innerHTML = `${head}
+      <h1>무슨 시험이든,<br>오늘 할 것만.</h1>
+      <p class="lead">분야를 고르면 바로 풀 수 있는 시험이 나와요.</p>
+      <div class="chips" role="toolbar" aria-label="분야">${FIELDS.map(f=>`<button type="button" data-f="${f.id}" aria-pressed="${f.id===pick}">${esc(f.이름)}</button>`).join('')}</div>
+      <section class="field"><h2>${esc(f.브랜드)}<span>${esc(f.대상)}</span></h2>
+        <div class="grid">${f.종목.map(x=>item(x)).join('')}</div></section>${foot}`;
+  };
+  app.addEventListener('click', e=>{ const b=e.target.closest('[data-f]'); if(b){ pick=b.dataset.f; draw(); }});
+  draw();
+}
+
+function viewB(){
+  let pick = null;
+  const draw = () => {
+    const f = FIELDS.find(f=>f.id===pick);
+    app.innerHTML = `${head}
+      <h1>어떤 시험을 준비하세요?</h1>
+      <div class="who">${FIELDS.map(f=>`<button type="button" data-f="${f.id}" aria-pressed="${f.id===pick}"><b>${esc(f.이름)}</b><small>${esc(f.대상)}</small></button>`).join('')}</div>
+      ${f ? `<section class="field"><h2>${esc(f.브랜드)}</h2><div class="grid">${f.종목.map(x=>item(x)).join('')}</div></section>`
+          : `<p class="lead">하나를 누르면 그 시험들이 아래에 나와요.</p>`}${foot}`;
+  };
+  app.addEventListener('click', e=>{ const b=e.target.closest('[data-f]'); if(b){ pick=b.dataset.f; draw(); }});
+  draw();
+}
+
+function viewC(){
+  const all = FIELDS.flatMap(f=>f.종목.map(x=>({...x, 분야:f.이름, 브랜드:f.브랜드})));
+  app.innerHTML = `${head}
+    <h1>시험 이름을 쳐 보세요.</h1>
+    <div class="search"><label for="q" class="lead" style="position:absolute;left:-9999px">시험 이름</label>
+      <input id="q" type="search" placeholder="예: 군무원, 중개사, 지게차" autocomplete="off"></div>
+    <div class="list" id="list"></div>${foot}`;
+  const list = document.getElementById('list');
+  const draw = q => {
+    const hit = all.filter(x => !q || (x.이름+x.설명+x.분야+x.브랜드).replace(/\s/g,'').includes(q.replace(/\s/g,'')));
+    hit.sort((a,b)=>(열림(b)-열림(a)));
+    list.innerHTML = hit.length ? hit.map(x => 열림(x)
+      ? `<a class="li" href="${esc(x.주소)}"><div><b>${esc(x.이름)}</b><small>${esc(x.브랜드)} · ${esc(x.설명||x.분야)}</small></div><span class="tag on">시작하기</span></a>`
+      : `<div class="li"><div><b>${esc(x.이름)}</b><small>${esc(x.브랜드)} · ${esc(x.설명||x.분야)}</small></div><span class="tag off">준비 중</span></div>`).join('')
+      : `<div class="empty">아직 없는 시험이에요. 다른 이름으로 찾아볼까요?</div>`;
+  };
+  document.getElementById('q').addEventListener('input', e=>draw(e.target.value.trim()));
+  draw('');
+}
+
+({a:viewA, b:viewB, c:viewC}[V] || viewA)();
+</script>
+</body>
+</html>
