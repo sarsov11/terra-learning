@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>테라러닝</title>
-<meta name="description" content="대입·공무원·자격증·취업 시험을 한 곳에서. 오늘 할 것만 골라 주는 시험 공부.">
+<meta name="description" content="대입·공무원·자격증·취업 시험의 기출을 풀고, 그날 풀 분량을 정해 주는 학습 사이트.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root{--bg:#FFFFFF;--panel:#F5F3F3;--line:#E4DFDF;--ink:#111111;--sub:#4B5563;--red:#C8102E;--red-soft:#FCE9EC;--ok:#15803D}
@@ -61,7 +61,7 @@ footer{color:var(--sub);font-size:13px;font-weight:600;border-top:1px solid var(
 <body>
 <div class="wrap" id="app"></div>
 <script>
-const DATA = {"분야": [{"id": "daeip", "이름": "대입", "브랜드": "모두의 대입", "대상": "고등학생", "종목": [{"이름": "통합사회", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-tongsa/"}, {"이름": "한국사", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-hanguksa/"}, {"이름": "통합과학", "설명": "", "상태": "준비", "주소": null}, {"이름": "수학", "설명": "", "상태": "준비", "주소": null}, {"이름": "영어", "설명": "", "상태": "구상", "주소": null}, {"이름": "진로", "설명": "", "상태": "구상", "주소": null}]}, {"id": "gongsi", "이름": "공무원", "브랜드": "진격의 공시", "대상": "공시생", "종목": [{"이름": "9급 공채", "설명": "국가직·지방직 일반행정", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "9급 전문직렬", "설명": "세무·교정·검찰·관세·교육·복지 등", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "경찰", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "소방", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "군무원", "설명": "9급 행정·군수·수사·전산", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}]}, {"id": "jagyeok", "이름": "자격증", "브랜드": "모두의 기사 · 모두의 자격", "대상": "성인 수험생", "종목": [{"이름": "기사·산업기사", "설명": "건축·건설안전·건축설비·위험물", "상태": "운영", "주소": "https://sarsov11.github.io/modu-gisa/"}, {"이름": "기사·산업기사 전 종목", "설명": "기사·산업기사 206종목 중 163종목 수집(0문항 43 — 목록 수집\\기사전체_0문항.txt)", "상태": "수집", "주소": null}, {"이름": "기능사", "설명": "지게차·굴착기·조리·제과제빵 등", "상태": "수집", "주소": null}, {"이름": "공인중개사", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-junggae/"}, {"이름": "전문자격", "설명": "11종 공개(전문자격 10 + 경영지도사) — 23,325문장", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/"}, {"이름": "회계·세무", "설명": "재경관리사(재무·원가·세무) 기출 + 전산회계·전산세무 이론", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/"}, {"이름": "데이터·IT", "설명": "ADsP·SQLD·컴활 필기", "상태": "구상", "주소": null}, {"이름": "무역", "설명": "무역영어 1·2·3급 · 국제무역사", "상태": "구상", "주소": null}]}, {"id": "chwieop", "이름": "취업", "브랜드": "진격의 NCS", "대상": "취업 준비생", "종목": [{"이름": "공기업 NCS", "설명": "지원기업별 맞춤 학습", "상태": "구상", "주소": null}, {"이름": "군 간부 선발", "설명": "부사관·ROTC·학사장교 간부선발도구", "상태": "구상", "주소": null}]}, {"id": "jeonmunjik", "이름": "전문직 1차", "브랜드": "모두의 전문직", "대상": "전문직 수험생", "종목": [{"이름": "세무사 1차", "설명": "", "상태": "구상", "주소": null}, {"이름": "공인회계사 1차", "설명": "", "상태": "구상", "주소": null}, {"이름": "감정평가사 1차", "설명": "", "상태": "구상", "주소": null}, {"이름": "공인노무사 1차", "설명": "", "상태": "구상", "주소": null}, {"이름": "변리사 1차", "설명": "특허청·큐넷", "상태": "수집", "주소": null}, {"이름": "변호사시험 선택형", "설명": "법무부 공개 기출 — 객관식만", "상태": "수집", "주소": null}, {"이름": "법무사 1차", "설명": "법원행정처", "상태": "수집", "주소": null}, {"이름": "보험계리사 1차", "설명": "보험개발원(KIDI) certi.kidi.or.kr 자료실", "상태": "수집", "주소": null}, {"이름": "손해사정사 1차", "설명": "보험개발원(KIDI) 자료실 — 계리사와 한 압축", "상태": "수집", "주소": null}]}, {"id": "free", "이름": "무료", "브랜드": "테라러닝", "대상": "누구나", "종목": [{"이름": "운전면허 학과", "설명": "공개 문제은행 1,000문항", "상태": "구상", "주소": null}]}, {"id": "global", "이름": "해외", "브랜드": "テラ資格 · Terra Prep", "대상": "일본·미국 수험생", "종목": [{"이름": "日本 危険物·消防設備士", "설명": "危険物 甲種·乙種第1~6類·丙種, 消防設備士 甲·乙·乙6", "상태": "운영", "주소": "https://sarsov11.github.io/terra-shikaku/"}, {"이름": "日本 기사급 33시험", "설명": "IPA·電験·電気工事士·施工管理·技術士·建築士·ボイラー 등", "상태": "수집", "주소": null}, {"이름": "US CPA", "설명": "REG 세법 4영역(IRC 근거) — 정답 자리 고르게", "상태": "운영", "주소": "https://sarsov11.github.io/terra-prep/"}, {"이름": "CFA", "설명": "Level I Ethics — 핸드북 23개 기준, O·X 230·3지선다 69(검산 299/299)", "상태": "운영", "주소": "https://sarsov11.github.io/terra-prep/"}]}]};
+const DATA = {"분야": [{"id": "daeip", "이름": "대입", "브랜드": "모두의 대입", "대상": "고등학생", "종목": [{"이름": "통합사회", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-tongsa/"}, {"이름": "한국사", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-hanguksa/"}, {"이름": "통합과학", "설명": "", "상태": "준비", "주소": null}, {"이름": "수학", "설명": "", "상태": "준비", "주소": null}, {"이름": "영어", "설명": "", "상태": "구상", "주소": null}, {"이름": "진로", "설명": "", "상태": "구상", "주소": null}]}, {"id": "gongsi", "이름": "공무원", "브랜드": "진격의 공시", "대상": "공시생", "종목": [{"이름": "9급 공채", "설명": "국가직·지방직 일반행정", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "9급 전문직렬", "설명": "세무·교정·검찰·관세·교육·복지 등", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "경찰", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "소방", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "군무원", "설명": "9급 행정·군수·수사·전산", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}]}, {"id": "jagyeok", "이름": "자격증", "브랜드": "모두의 기사 · 모두의 자격", "대상": "성인 수험생", "종목": [{"이름": "기사·산업기사", "설명": "건축·건설안전·건축설비·위험물", "상태": "운영", "주소": "https://sarsov11.github.io/modu-gisa/"}, {"이름": "기사·산업기사 전 종목", "설명": "기사·산업기사 206종목 중 163종목 기출 수집", "상태": "수집", "주소": null}, {"이름": "기능사", "설명": "지게차·굴착기·조리·제과제빵 등", "상태": "수집", "주소": null}, {"이름": "공인중개사", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-junggae/"}, {"이름": "전문자격", "설명": "전문자격 10종과 경영지도사 기출 23,325문장", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/"}, {"이름": "회계·세무", "설명": "재경관리사(재무·원가·세무) 기출과 전산회계·전산세무 이론", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/"}, {"이름": "데이터·IT", "설명": "ADsP·SQLD·컴활 필기", "상태": "구상", "주소": null}, {"이름": "무역", "설명": "무역영어 1·2·3급 · 국제무역사", "상태": "구상", "주소": null}]}, {"id": "chwieop", "이름": "취업", "브랜드": "진격의 NCS", "대상": "취업 준비생", "종목": [{"이름": "공기업 NCS", "설명": "지원 기관별 필기 대비", "상태": "구상", "주소": null}, {"이름": "군 간부 선발", "설명": "부사관·ROTC·학사장교 간부선발도구", "상태": "구상", "주소": null}]}, {"id": "jeonmunjik", "이름": "전문직 1차", "브랜드": "모두의 전문직", "대상": "전문직 수험생", "종목": [{"이름": "세무사 1차", "설명": "", "상태": "구상", "주소": null}, {"이름": "공인회계사 1차", "설명": "", "상태": "구상", "주소": null}, {"이름": "감정평가사 1차", "설명": "", "상태": "구상", "주소": null}, {"이름": "공인노무사 1차", "설명": "", "상태": "구상", "주소": null}, {"이름": "변리사 1차", "설명": "특허청·큐넷 공개 기출", "상태": "수집", "주소": null}, {"이름": "변호사시험 선택형", "설명": "법무부 공개 기출 중 객관식", "상태": "수집", "주소": null}, {"이름": "법무사 1차", "설명": "법원행정처 공개 기출", "상태": "수집", "주소": null}, {"이름": "보험계리사 1차", "설명": "보험개발원(KIDI) 공개 기출", "상태": "수집", "주소": null}, {"이름": "손해사정사 1차", "설명": "보험개발원(KIDI) 공개 기출", "상태": "수집", "주소": null}]}, {"id": "free", "이름": "무료", "브랜드": "테라러닝", "대상": "누구나", "종목": [{"이름": "운전면허 학과", "설명": "공개 문제은행 1,000문항", "상태": "구상", "주소": null}]}, {"id": "global", "이름": "해외", "브랜드": "テラ資格 · Terra Prep", "대상": "일본·미국 수험생", "종목": [{"이름": "日本 危険物·消防設備士", "설명": "危険物 甲種·乙種第1~6類·丙種, 消防設備士 甲·乙·乙6", "상태": "운영", "주소": "https://sarsov11.github.io/terra-shikaku/"}, {"이름": "日本 기사급 33시험", "설명": "IPA·電験·電気工事士·施工管理·技術士·建築士·ボイラー 등", "상태": "수집", "주소": null}, {"이름": "US CPA", "설명": "REG 세법 4영역, 미국 내국세입법(IRC) 근거", "상태": "운영", "주소": "https://sarsov11.github.io/terra-prep/"}, {"이름": "CFA", "설명": "Level I 윤리, 핸드북 기준 23개로 O·X 230문항과 3지선다 69문항", "상태": "운영", "주소": "https://sarsov11.github.io/terra-prep/"}]}]};
 const FIELDS = DATA.분야;
 const SIAN = /*SIAN*/false;
 const V = (new URLSearchParams(location.search).get('v') || location.hash.slice(1) || 'a').toLowerCase();
@@ -74,7 +74,7 @@ const item = (x, brand) => 열림(x)
   : `<div class="item off">${brand?`<span class="brand">${esc(brand)}</span>`:''}<b>${esc(x.이름)}</b><small>${esc(x.설명||'')}</small><span class="go">준비 중</span></div>`;
 const head = `<header><div class="logo">테라<span>러닝</span></div></header>`;
 const bar = SIAN ? `<nav class="sian" aria-label="시안">${[['a','A 분야 칩'],['b','B 나는 누구'],['c','C 검색']].map(([k,l])=>`<a href="#${k}" aria-current="${k===V}">${l}</a>`).join('')}</nav>` : '';
-const foot = bar + `<footer>테라러닝 · 기출은 시행기관 공개 자료(출처 표시)로 만듭니다.</footer>`;
+const foot = bar + `<footer>테라러닝 · 기출 문항은 시행기관이 공개한 자료에서 가져오고 출처를 적어요.</footer>`;
 
 function viewA(){
   let pick = FIELDS[0].id;
@@ -82,7 +82,7 @@ function viewA(){
     const f = FIELDS.find(f=>f.id===pick);
     app.innerHTML = `${head}
       <h1>무슨 시험이든,<br>오늘 할 것만.</h1>
-      <p class="lead">분야를 고르면 바로 풀 수 있는 시험이 나와요.</p>
+      <p class="lead">분야를 고르면 그 분야 시험이 나와요.</p>
       <div class="chips" role="toolbar" aria-label="분야">${FIELDS.map(f=>`<button type="button" data-f="${f.id}" aria-pressed="${f.id===pick}">${esc(f.이름)}</button>`).join('')}</div>
       <section class="field"><h2>${esc(f.브랜드)}<span>${esc(f.대상)}</span></h2>
         <div class="grid">${f.종목.map(x=>item(x)).join('')}</div></section>${foot}`;
@@ -99,7 +99,7 @@ function viewB(){
       <h1>어떤 시험을 준비하세요?</h1>
       <div class="who">${FIELDS.map(f=>`<button type="button" data-f="${f.id}" aria-pressed="${f.id===pick}"><b>${esc(f.이름)}</b><small>${esc(f.대상)}</small></button>`).join('')}</div>
       ${f ? `<section class="field"><h2>${esc(f.브랜드)}</h2><div class="grid">${f.종목.map(x=>item(x)).join('')}</div></section>`
-          : `<p class="lead">하나를 누르면 그 시험들이 아래에 나와요.</p>`}${foot}`;
+          : `<p class="lead">하나를 누르면 그 분야 시험이 아래에 나와요.</p>`}${foot}`;
   };
   app.addEventListener('click', e=>{ const b=e.target.closest('[data-f]'); if(b){ pick=b.dataset.f; draw(); }});
   draw();
@@ -108,7 +108,7 @@ function viewB(){
 function viewC(){
   const all = FIELDS.flatMap(f=>f.종목.map(x=>({...x, 분야:f.이름, 브랜드:f.브랜드})));
   app.innerHTML = `${head}
-    <h1>시험 이름을 쳐 보세요.</h1>
+    <h1>시험 이름으로 찾기</h1>
     <div class="search"><label for="q" class="lead" style="position:absolute;left:-9999px">시험 이름</label>
       <input id="q" type="search" placeholder="예: 군무원, 중개사, 지게차" autocomplete="off"></div>
     <div class="list" id="list"></div>${foot}`;
@@ -119,7 +119,7 @@ function viewC(){
     list.innerHTML = hit.length ? hit.map(x => 열림(x)
       ? `<a class="li" href="${esc(x.주소)}"><div><b>${esc(x.이름)}</b><small>${esc(x.브랜드)} · ${esc(x.설명||x.분야)}</small></div><span class="tag on">시작하기</span></a>`
       : `<div class="li"><div><b>${esc(x.이름)}</b><small>${esc(x.브랜드)} · ${esc(x.설명||x.분야)}</small></div><span class="tag off">준비 중</span></div>`).join('')
-      : `<div class="empty">아직 없는 시험이에요. 다른 이름으로 찾아볼까요?</div>`;
+      : `<div class="empty">일치하는 시험이 없어요.</div>`;
   };
   document.getElementById('q').addEventListener('input', e=>draw(e.target.value.trim()));
   draw('');
