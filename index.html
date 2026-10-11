@@ -4,11 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>테라러닝</title>
-<meta name="description" content="대입·공무원·자격증·취업 시험의 기출을 풀고, 그날 풀 분량을 정해 주는 학습 사이트.">
+<meta name="description" content="대입·공무원·자격증·취업·전문직·해외 시험의 기출을 풀고, 그날 풀 분량을 정해 주는 학습 사이트.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root{--bg:#FFFFFF;--panel:#F5F3F3;--line:#E4DFDF;--ink:#111111;--sub:#4B5563;--red:#C8102E;--red-soft:#FCE9EC;--ok:#15803D}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif;font-weight:500;line-height:1.5;
   padding-inline:16px;padding-block:calc(env(safe-area-inset-top,0px) + 20px) calc(env(safe-area-inset-bottom,0px) + 48px)}
 .wrap{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
@@ -18,25 +19,31 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 h1{font-size:clamp(26px,5.4vw,40px);font-weight:900;letter-spacing:-.03em;line-height:1.2;margin:0;text-wrap:balance}
 .lead{margin:0;color:var(--sub);font-size:16px;font-weight:600}
 a{color:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chips button{font:inherit;font-weight:800;font-size:15px;border:0;border-radius:999px;padding:9px 16px;background:var(--panel);color:var(--ink);cursor:pointer}
+.chips button .n{font-size:12.5px;font-weight:800;margin-left:5px;opacity:.65}
 .chips button[aria-pressed="true"]{background:var(--ink);color:#fff}
 button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--red);outline-offset:2px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 .item{display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:14px;background:var(--panel);text-decoration:none;min-height:118px}
 .item b{font-size:18px;font-weight:900}
-.item small{font-size:13.5px;color:var(--sub);font-weight:600}
+.item small{font-size:13.5px;color:var(--sub);font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .item .go{margin-top:auto;font-weight:900;color:var(--red);font-size:14px}
 .item.off{background:transparent;border:2px dashed var(--line)}
 .item.off .go{color:var(--sub)}
+.item.multi{background:#fff;border:2px solid var(--line)}
 .item .links{margin-top:auto;display:flex;flex-wrap:wrap;gap:8px}
 .item .links a{font-weight:900;color:var(--red);font-size:14px;text-decoration:none;padding:7px 12px;border-radius:99px;background:var(--red-soft)}
 .item .links .off{font-weight:800;color:var(--sub);font-size:14px;padding:7px 12px;border-radius:99px;border:1.5px dashed var(--line)}
 a.item:hover{background:var(--red-soft)}
 .brand{font-size:12.5px;font-weight:800;color:var(--red)}
+.warn{align-self:flex-start;font-size:12.5px;font-weight:800;color:#92400E;background:#FEF3C7;padding:2px 8px;border-radius:6px}
 .field{display:flex;flex-direction:column;gap:10px}
 .field h2{margin:0;font-size:21px;font-weight:900;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .field h2 span{font-size:13.5px;color:var(--sub);font-weight:700}
+.field h3{margin:10px 0 0;font-size:15px;font-weight:800;color:var(--sub)}
+.browse{display:flex;flex-direction:column;gap:20px}
 /* B */
 .who{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
 .who button{font:inherit;text-align:left;border:0;border-radius:16px;background:var(--panel);padding:18px 16px;min-height:96px;cursor:pointer;display:flex;flex-direction:column;gap:4px}
@@ -44,17 +51,22 @@ a.item:hover{background:var(--red-soft)}
 .who button small{font-size:13px;color:var(--sub);font-weight:700}
 .who button[aria-pressed="true"]{background:var(--ink);color:#fff}
 .who button[aria-pressed="true"] small{color:#D1D5DB}
-/* C */
+/* 검색 */
 .search{display:flex;gap:8px}
 .search input{flex:1;min-width:0;font:inherit;font-size:18px;font-weight:700;padding:15px 16px;border-radius:14px;border:2px solid var(--ink);background:#fff;color:var(--ink)}
+.count{margin:0 0 -14px;color:var(--sub);font-size:14px;font-weight:700}
+.count:empty{display:none}
 .list{display:flex;flex-direction:column;border-top:2px solid var(--ink)}
 .li{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:13px 2px;border-bottom:1px solid var(--line);text-decoration:none}
 .li b{font-size:17px;font-weight:900}
 .li small{display:block;color:var(--sub);font-size:13px;font-weight:600}
-.tag{font-size:12.5px;font-weight:900;padding:3px 10px;border-radius:6px;white-space:nowrap}
+.li .hint{color:var(--red);font-weight:800}
+.li .tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tag{font-size:12.5px;font-weight:900;padding:3px 10px;border-radius:6px;white-space:nowrap;text-decoration:none}
 .tag.on{background:var(--red);color:#fff}
 .tag.off{background:var(--panel);color:var(--sub)}
-.empty{color:var(--sub);font-weight:700;padding:16px 2px}
+.empty{color:var(--sub);font-weight:700;padding:16px 2px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.empty button{font:inherit;font-weight:800;font-size:15px;border:0;border-radius:999px;padding:9px 16px;background:var(--ink);color:#fff;cursor:pointer}
 nav.sian{display:flex;gap:6px;flex-wrap:wrap;background:#111;padding:8px;border-radius:12px}
 nav.sian a{color:#fff;text-decoration:none;font-weight:800;font-size:14px;padding:6px 12px;border-radius:8px}
 nav.sian a[aria-current="true"]{background:var(--red)}
@@ -62,39 +74,123 @@ footer{color:var(--sub);font-size:13px;font-weight:600;border-top:1px solid var(
 </style>
 </head>
 <body>
+<noscript><p class="lead">시험 목록을 보려면 브라우저에서 자바스크립트를 켜 주세요.</p></noscript>
 <div class="wrap" id="app"></div>
 <script>
 const DATA = {"분야": [{"id": "daeip", "이름": "대입", "브랜드": "모두의 대입", "대상": "고등학생", "종목": [{"이름": "국어", "설명": "평가원 수능·모의평가 기출, 태블릿·PC 전용", "상태": "운영", "주소": "https://sarsov11.github.io/modu-daeip/gukeo/"}, {"이름": "통합사회", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-tongsa/"}, {"이름": "한국사", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-hanguksa/"}, {"이름": "통합과학", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-tonggwa/"}, {"이름": "수학", "설명": "", "상태": "준비", "주소": null}, {"이름": "영어", "설명": "평가원·EBS 지문 944개, 문법·서술형·단어장", "상태": "운영", "주소": "https://sarsov11.github.io/modu-english/"}, {"이름": "진로", "설명": "", "상태": "구상", "주소": null}]}, {"id": "gongsi", "이름": "공무원", "브랜드": "진격의 공시", "대상": "공시생", "종목": [{"이름": "9급 공채", "설명": "국가직·지방직 일반행정", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "9급 전문직렬", "설명": "세무·교정·검찰·관세·교육·복지 등", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "경찰", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "소방", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}, {"이름": "군무원", "설명": "9급 행정·군수·수사·전산", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-gongsi/"}]}, {"id": "jagyeok", "이름": "자격증", "브랜드": "모두의 기사 · 모두의 자격", "대상": "성인 수험생", "종목": [{"이름": "기사", "설명": "68종목 필기 기출·개념·모의고사", "상태": "운영", "주소": "https://sarsov11.github.io/modu-gisa/?g=기사"}, {"이름": "산업기사", "설명": "61종목 필기 기출·개념·모의고사", "상태": "운영", "주소": "https://sarsov11.github.io/modu-gisa/?g=산업기사"}, {"이름": "기능사", "설명": "124종목 필기 기출·개념·모의고사", "상태": "운영", "주소": "https://sarsov11.github.io/modu-gisa/?g=기능사"}, {"이름": "공인중개사·행정사", "설명": "", "상태": "운영", "주소": "https://sarsov11.github.io/modu-junggae/", "링크": [{"이름": "공인중개사", "주소": "https://sarsov11.github.io/modu-junggae/"}, {"이름": "행정사", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=ad_civil"}]}, {"이름": "청소년상담사", "설명": "1·2·3급 필기 기출", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=yc_theory2"}, {"이름": "주택관리사보", "설명": "1차 기출", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=hm_acct"}, {"이름": "물류관리사", "설명": "필기 기출", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=lg_logi"}, {"이름": "손해평가사", "설명": "1차 기출", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=ia_law"}, {"이름": "경비지도사", "설명": "1차 기출", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=sg_law"}, {"이름": "사회복지사 1급", "설명": "필기 기출", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=sw_human"}, {"이름": "소방시설관리사", "설명": "1차 기출", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=fm_theory"}, {"이름": "산업안전지도사", "설명": "1차 기출", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=sa_law"}, {"이름": "가맹거래사", "설명": "1차 기출", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=fr_econ"}, {"이름": "경영지도사", "설명": "1차 기출", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=mg_law"}, {"이름": "지식재산능력시험", "설명": "IPAT 핵심 O·X", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=ip_1"}, {"이름": "보험계리사·손해사정사", "설명": "보험개발원(KIDI) 공개 기출", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=ac_econ", "링크": [{"이름": "보험계리사", "주소": "https://sarsov11.github.io/modu-jagyeok/?s=ac_econ"}, {"이름": "손해사정사", "주소": null}]}, {"이름": "회계·세무", "설명": "재경관리사(재무·원가·세무) 기출과 전산회계·전산세무 이론", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/"}, {"이름": "데이터·IT", "설명": "ADsP·SQLD·컴활 필기", "상태": "구상", "주소": null}, {"이름": "무역", "설명": "무역영어 1·2·3급 · 국제무역사", "상태": "구상", "주소": null}]}, {"id": "chwieop", "이름": "취업", "브랜드": "진격의 NCS", "대상": "취업 준비생", "종목": [{"이름": "공기업 NCS", "설명": "지원 기관별 필기 대비", "상태": "구상", "주소": null}, {"이름": "군 간부 선발", "설명": "부사관·ROTC·학사장교 간부선발도구", "상태": "구상", "주소": null}]}, {"id": "jeonmunjik", "이름": "전문직 1차", "브랜드": "모두의 전문직", "대상": "8대 전문직 수험생", "종목": [{"이름": "세무사 1차", "설명": "2016~2026 기출 재정학·세법학개론·회계학개론·선택(상법·민법·행정소송법) O·X, 계정 훈련", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/"}, {"이름": "공인회계사 1차", "설명": "2016~2026 기출 2,278문항(5과목) O·X·기출 풀기, 커트라인 기준 목표, 계정 훈련", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/"}, {"이름": "감정평가사 1차", "설명": "", "상태": "구상", "주소": null}, {"이름": "공인노무사 1차", "설명": "2016~2026 기출(텍스트 6개 연도 실음) 노동법Ⅰ·Ⅱ·민법·사회보험법·경영/경제 O·X, 계정 훈련", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/"}, {"이름": "변리사 1차", "설명": "2016~2026 기출(OCR 3개 연도 제외) O·X, 합격선 기준 목표 83점", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/"}, {"이름": "변호사시험 선택형", "설명": "법무부 공개 기출 중 객관식", "상태": "수집", "주소": null}, {"이름": "법무사 1차", "설명": "2016~2026 기출 2,200문항(4과목·8법) O·X, 법원 공고 합격선 기준 목표 68점", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/"}, {"이름": "관세사 1차", "설명": "2017~2026 기출 1,599문항(4과목) O·X·기출 풀기, 계정 훈련", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/"}, {"이름": "전문직 2차 답안 훈련", "설명": "8대 전문직 2차 기출(2016~2026) 4,527물음 득점 요소 채점표, 쟁점 인출·목차 쓰기·실전 쓰기·계산 단계·실제 시간 모의, 합격 기준·단원 빈도", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/essay.html"}]}, {"id": "free", "이름": "무료", "브랜드": "테라러닝", "대상": "누구나", "종목": [{"이름": "운전면허 학과", "설명": "공개 문제은행 1,000문항", "상태": "구상", "주소": null}]}, {"id": "global", "이름": "해외", "브랜드": "テラ資格 · Terra Prep", "대상": "일본·미국 수험생", "종목": [{"이름": "日本 危険物·消防設備士", "설명": "危険物 甲種·乙種第1~6類·丙種, 消防設備士 甲·乙·乙6", "상태": "운영", "주소": "https://sarsov11.github.io/terra-shikaku/"}, {"이름": "日本 기사급 33시험", "설명": "IPA·電験·電気工事士·施工管理·技術士·建築士·ボイラー 등", "상태": "수집", "주소": null}, {"이름": "US CPA", "설명": "REG 세법 4영역, 미국 내국세입법(IRC) 근거", "상태": "운영", "주소": "https://sarsov11.github.io/terra-prep/"}, {"이름": "CFA", "설명": "Level I 윤리, 핸드북 기준 23개로 O·X 230문항과 3지선다 69문항", "상태": "운영", "주소": "https://sarsov11.github.io/terra-prep/"}]}]};
 const FIELDS = DATA.분야;
 const SIAN = /*SIAN*/false;
-const V = (new URLSearchParams(location.search).get('v') || location.hash.slice(1) || 'a').toLowerCase();
-addEventListener('hashchange', () => location.reload());
+const P = new URLSearchParams(location.search);
+const V = (P.get('v') || location.hash.slice(1) || 'a').toLowerCase();
+addEventListener('hashchange', () => { if (/^#[abc]$/i.test(location.hash)) location.reload(); });
 const app = document.getElementById('app');
 const esc = s => String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const 열림 = x => x.상태 === '운영' && x.주소;
+/* 데이터의 상태값(준비·수집·구상)을 그대로 구분해 보여 준다 — 「구상」을 「준비 중」이라 하면 곧 나올 것처럼 읽힘 */
+const 상태글 = {준비:'준비 중', 수집:'자료 모으는 중', 구상:'계획 단계'};
+const 닫힘글 = x => 상태글[x.상태] || '준비 중';
+const ALL = FIELDS.flatMap(f=>f.종목.map(x=>({...x, 분야:f.이름, fid:f.id, 브랜드:f.브랜드})));
+/* 여러 카드가 같은 사이트 첫 화면으로 가면 「시작하기」 대신 「들어가서 고르기」 */
+const 주소수 = {};
+ALL.forEach(x => { if (x.주소 && !x.링크) 주소수[x.주소] = (주소수[x.주소]||0) + 1; });
+const 가기글 = x => 주소수[x.주소] > 1 ? '들어가서 고르기 →' : '시작하기 →';
+const 좁은화면 = matchMedia('(max-width: 700px)').matches;
+const 경고 = x => 좁은화면 && /PC\s*전용/.test(x.설명||'') ? `<span class="warn">휴대폰 화면에는 맞지 않아요</span>` : '';
+
+/* 카드 설명에 안 나오는 하위 종목·흔한 별칭 — 검색에만 쓴다 */
+const 별칭 = {
+  '기능사': ['지게차','굴착기','한식조리','양식조리','중식조리','일식조리','제과','제빵','미용','용접'],
+  '공인회계사 1차': ['회계사','CPA'],
+  '경찰': ['순경','경찰공무원'],
+  '소방': ['소방공무원'],
+};
+const norm = s => String(s||'').toLowerCase().replace(/[\s·・,()]/g,'');
+const 찾을글 = x => norm([x.이름, x.설명, x.분야, x.브랜드, ...(x.링크||[]).map(l=>l.이름), ...(별칭[x.이름]||[])].join(' '));
+/* 「전기기사」「위험물산업기사」처럼 등급으로 끝나는 이름은 해당 등급 카드로 안내 */
+const 등급 = q => /산업기사$/.test(q) ? '산업기사' : /기능사$/.test(q) ? '기능사' : (/기사$/.test(q) && q.length > 2 && q !== '속기사') ? '기사' : null;
+const 찾기 = raw => {
+  const q = norm(raw);
+  const hit = ALL.filter(x => 찾을글(x).includes(q)).map(x => ({x,
+    hint: (별칭[x.이름]||[]).some(a => norm(a).includes(q)) && !norm(x.이름+x.설명).includes(q) && /기사$|기능사$/.test(x.이름) ? `「${raw}」은(는) ${x.이름} 안에서 골라요` : ''}));
+  const g = 등급(q);
+  if (g && q !== g) {
+    const card = ALL.find(x => x.이름 === g);
+    if (card && !hit.some(h => h.x === card)) hit.push({x: card, hint: `「${raw}」은(는) ${g} 안에서 골라요`});
+  }
+  return hit.sort((a,b)=>(!!열림(b.x)-!!열림(a.x)));
+};
+
 /* 링크 여러 개 카드(2026-10-08 대표님 「중개사랑 행정사 묶으셈」 · 보험계리사·손해사정사) — 종목마다 단추 */
-const 묶음 = (x, brand) => `<div class="item multi">${brand?`<span class="brand">${esc(brand)}</span>`:''}<b>${esc(x.이름)}</b><small>${esc(x.설명||'')}</small><span class="links">${
-  x.링크.map(l => l.주소 ? `<a href="${esc(l.주소)}">${esc(l.이름)}</a>` : `<span class="off">${esc(l.이름)} 준비 중</span>`).join('')}</span></div>`;
+const 묶음 = (x, brand) => `<div class="item multi">${brand?`<span class="brand">${esc(brand)}</span>`:''}<b>${esc(x.이름)}</b><small title="${esc(x.설명)}">${esc(x.설명||'')}</small><span class="links">${
+  x.링크.map(l => l.주소 ? `<a href="${esc(l.주소)}">${esc(l.이름)} →</a>` : `<span class="off">${esc(l.이름)} 준비 중</span>`).join('')}</span></div>`;
 const item = (x, brand) => x.링크 ? 묶음(x, brand) : 열림(x)
-  ? `<a class="item" href="${esc(x.주소)}">${brand?`<span class="brand">${esc(brand)}</span>`:''}<b>${esc(x.이름)}</b><small>${esc(x.설명||'')}</small><span class="go">시작하기</span></a>`
-  : `<div class="item off">${brand?`<span class="brand">${esc(brand)}</span>`:''}<b>${esc(x.이름)}</b><small>${esc(x.설명||'')}</small><span class="go">준비 중</span></div>`;
+  ? `<a class="item" href="${esc(x.주소)}">${brand?`<span class="brand">${esc(brand)}</span>`:''}<b>${esc(x.이름)}</b><small title="${esc(x.설명)}">${esc(x.설명||'')}</small>${경고(x)}<span class="go">${가기글(x)}</span></a>`
+  : `<div class="item off">${brand?`<span class="brand">${esc(brand)}</span>`:''}<b>${esc(x.이름)}</b><small title="${esc(x.설명)}">${esc(x.설명||'')}</small><span class="go">${닫힘글(x)}</span></div>`;
+const row = ({x, hint}) => {
+  const sub = `<small>${hint ? `<span class="hint">${esc(hint)}</span> · ` : ''}${esc(x.분야)} · ${esc(x.브랜드)}${x.설명 ? ` · ${esc(x.설명)}` : ''}</small>${경고(x)}`;
+  if (x.링크) return `<div class="li"><div><b>${esc(x.이름)}</b>${sub}</div><span class="tags">${x.링크.map(l => l.주소
+    ? `<a class="tag on" href="${esc(l.주소)}">${esc(l.이름)}</a>` : `<span class="tag off">${esc(l.이름)} 준비 중</span>`).join('')}</span></div>`;
+  return 열림(x)
+    ? `<a class="li" href="${esc(x.주소)}"><div><b>${esc(x.이름)}</b>${sub}</div><span class="tag on">${주소수[x.주소] > 1 ? '들어가서 고르기' : '시작하기'}</span></a>`
+    : `<div class="li"><div><b>${esc(x.이름)}</b>${sub}</div><span class="tag off">${닫힘글(x)}</span></div>`;
+};
+const 열린수 = f => f.종목.filter(x => x.링크 ? x.링크.some(l=>l.주소) : 열림(x)).length;
+const 분야카드 = f => {
+  const on = f.종목.filter(x => x.링크 || 열림(x)), off = f.종목.filter(x => !(x.링크 || 열림(x)));
+  return `<h2>${esc(f.이름)}<span>${esc(f.브랜드)} · ${esc(f.대상)}</span></h2>
+    ${on.length ? `<div class="grid">${on.map(x=>item(x)).join('')}</div>` : `<p class="lead">이 분야는 아직 열린 시험이 없어요.</p>`}
+    ${off.length ? `<h3>아직 준비 중인 시험 ${off.length}개</h3><div class="grid">${off.map(x=>item(x)).join('')}</div>` : ''}`;
+};
+const 검색창 = `<div class="search"><label for="q" class="sr">시험 이름</label>
+  <input id="q" type="search" placeholder="예: 군무원, 중개사, 지게차" autocomplete="off" enterkeyhint="search"></div>`;
+const 기억 = {
+  get(){ try { return localStorage.getItem('terra.field'); } catch(e) { return null; } },
+  set(v){ try { localStorage.setItem('terra.field', v); } catch(e) {} },
+};
+
 const head = `<header><div class="logo">테라<span>러닝</span></div></header>`;
 const bar = SIAN ? `<nav class="sian" aria-label="시안">${[['a','A 분야 칩'],['b','B 나는 누구'],['c','C 검색']].map(([k,l])=>`<a href="#${k}" aria-current="${k===V}">${l}</a>`).join('')}</nav>` : '';
-const foot = bar + `<footer>테라러닝 · 기출 문항은 시행기관이 공개한 자료에서 가져오고 출처를 적어요.</footer>`;
+const foot = bar + `<footer>테라러닝 · 시험을 고르면 그 시험의 학습 사이트로 이동해요. 기출 문항은 시행기관이 공개한 자료에서 가져오고 출처를 적어요.</footer>`;
 
+/* A: 검색 + 분야 칩. 고른 분야·검색어는 주소(?f=, ?q=)에 남겨 뒤로 가기·공유 때 그대로 돌아온다 */
 function viewA(){
-  let pick = FIELDS[0].id;
-  const draw = () => {
-    const f = FIELDS.find(f=>f.id===pick);
-    app.innerHTML = `${head}
-      <h1>무슨 시험이든,<br>오늘 할 것만.</h1>
-      <p class="lead">분야를 고르면 그 분야 시험이 나와요.</p>
-      <div class="chips" role="toolbar" aria-label="분야">${FIELDS.map(f=>`<button type="button" data-f="${f.id}" aria-pressed="${f.id===pick}">${esc(f.이름)}</button>`).join('')}</div>
-      <section class="field"><h2>${esc(f.브랜드)}<span>${esc(f.대상)}</span></h2>
-        <div class="grid">${f.종목.map(x=>item(x)).join('')}</div></section>${foot}`;
+  const has = id => FIELDS.some(f=>f.id===id);
+  let pick = [P.get('f'), 기억.get()].find(has) || FIELDS[0].id;
+  app.innerHTML = `${head}
+    <h1>무슨 시험이든,<br>오늘 할 것만.</h1>
+    <p class="lead">시험 이름을 검색하거나, 분야를 골라 보세요.</p>
+    ${검색창}
+    <p class="count" id="count" aria-live="polite"></p>
+    <div class="list" id="list" hidden></div>
+    <div class="browse" id="browse">
+      <div class="chips" role="group" aria-label="분야">${FIELDS.map(f=>`<button type="button" data-f="${f.id}" aria-pressed="${f.id===pick}">${esc(f.이름)}<span class="n" aria-label="열린 시험 ${열린수(f)}개">${열린수(f)}</span></button>`).join('')}</div>
+      <section class="field" id="field" aria-live="polite"></section>
+    </div>${foot}`;
+  const q = document.getElementById('q'), list = document.getElementById('list'), browse = document.getElementById('browse'),
+        field = document.getElementById('field'), count = document.getElementById('count');
+  const sync = () => {
+    const p = new URLSearchParams(location.search);
+    p.set('f', pick); q.value.trim() ? p.set('q', q.value.trim()) : p.delete('q');
+    history.replaceState(null, '', '?' + p.toString() + location.hash);
   };
-  app.addEventListener('click', e=>{ const b=e.target.closest('[data-f]'); if(b){ pick=b.dataset.f; draw(); }});
-  draw();
+  const drawField = () => {
+    browse.querySelectorAll('[data-f]').forEach(b => b.setAttribute('aria-pressed', b.dataset.f === pick));
+    field.innerHTML = 분야카드(FIELDS.find(f=>f.id===pick));
+  };
+  const drawSearch = () => {
+    const v = q.value.trim();
+    list.hidden = !v; browse.hidden = !!v;
+    if (!v) { count.textContent = ''; list.innerHTML = ''; return; }
+    const hit = 찾기(v);
+    count.textContent = hit.length ? `시험 ${hit.length}개` : '';
+    list.innerHTML = hit.length ? hit.map(row).join('')
+      : `<div class="empty"><span>「${esc(v)}」와 맞는 시험이 없어요. 띄어쓰기를 빼거나 시험 이름 일부만 넣어 보세요.</span><button type="button" data-clear>분야로 둘러보기</button></div>`;
+  };
+  browse.addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { pick = b.dataset.f; 기억.set(pick); drawField(); sync(); }});
+  list.addEventListener('click', e => { if (e.target.closest('[data-clear]')) { q.value = ''; drawSearch(); sync(); q.focus(); }});
+  q.addEventListener('input', () => { drawSearch(); sync(); });
+  q.value = P.get('q') || '';
+  drawField(); drawSearch();
 }
 
 function viewB(){
@@ -104,28 +200,25 @@ function viewB(){
     app.innerHTML = `${head}
       <h1>어떤 시험을 준비하세요?</h1>
       <div class="who">${FIELDS.map(f=>`<button type="button" data-f="${f.id}" aria-pressed="${f.id===pick}"><b>${esc(f.이름)}</b><small>${esc(f.대상)}</small></button>`).join('')}</div>
-      ${f ? `<section class="field"><h2>${esc(f.브랜드)}</h2><div class="grid">${f.종목.map(x=>item(x)).join('')}</div></section>`
+      ${f ? `<section class="field">${분야카드(f)}</section>`
           : `<p class="lead">하나를 누르면 그 분야 시험이 아래에 나와요.</p>`}${foot}`;
   };
-  app.addEventListener('click', e=>{ const b=e.target.closest('[data-f]'); if(b){ pick=b.dataset.f; draw(); }});
+  app.addEventListener('click', e=>{ const b=e.target.closest('[data-f]'); if(b){ pick=b.dataset.f; draw(); app.querySelector(`[data-f="${pick}"]`).focus(); }});
   draw();
 }
 
 function viewC(){
-  const all = FIELDS.flatMap(f=>f.종목.map(x=>({...x, 분야:f.이름, 브랜드:f.브랜드})));
   app.innerHTML = `${head}
     <h1>시험 이름으로 찾기</h1>
-    <div class="search"><label for="q" class="lead" style="position:absolute;left:-9999px">시험 이름</label>
-      <input id="q" type="search" placeholder="예: 군무원, 중개사, 지게차" autocomplete="off"></div>
+    ${검색창}
+    <p class="count" id="count" aria-live="polite"></p>
     <div class="list" id="list"></div>${foot}`;
-  const list = document.getElementById('list');
-  const draw = q => {
-    const hit = all.filter(x => !q || (x.이름+x.설명+x.분야+x.브랜드).replace(/\s/g,'').includes(q.replace(/\s/g,'')));
-    hit.sort((a,b)=>(열림(b)-열림(a)));
-    list.innerHTML = hit.length ? hit.map(x => 열림(x)
-      ? `<a class="li" href="${esc(x.주소)}"><div><b>${esc(x.이름)}</b><small>${esc(x.브랜드)} · ${esc(x.설명||x.분야)}</small></div><span class="tag on">시작하기</span></a>`
-      : `<div class="li"><div><b>${esc(x.이름)}</b><small>${esc(x.브랜드)} · ${esc(x.설명||x.분야)}</small></div><span class="tag off">준비 중</span></div>`).join('')
-      : `<div class="empty">일치하는 시험이 없어요.</div>`;
+  const list = document.getElementById('list'), count = document.getElementById('count');
+  const draw = v => {
+    const hit = v ? 찾기(v) : ALL.map(x=>({x})).sort((a,b)=>(!!열림(b.x)-!!열림(a.x)));
+    count.textContent = `시험 ${hit.length}개`;
+    list.innerHTML = hit.length ? hit.map(row).join('')
+      : `<div class="empty">「${esc(v)}」와 맞는 시험이 없어요. 띄어쓰기를 빼거나 시험 이름 일부만 넣어 보세요.</div>`;
   };
   document.getElementById('q').addEventListener('input', e=>draw(e.target.value.trim()));
   draw('');
