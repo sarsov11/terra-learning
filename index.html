@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>테라러닝</title>
+<title>모두의 시험 · 테라러닝</title>
 <meta name="description" content="대입·공무원·자격증·취업 시험의 기출을 풀고, 그날 풀 분량을 정해 주는 학습 사이트.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
@@ -13,8 +13,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Noto
   padding-inline:16px;padding-block:calc(env(safe-area-inset-top,0px) + 20px) calc(env(safe-area-inset-bottom,0px) + 48px)}
 .wrap{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
 header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.logo{font-weight:900;font-size:20px;letter-spacing:-.02em}
-.logo span{color:var(--red)}
+.logo{display:block;line-height:0}
+.logo svg{height:40px;width:auto}
 h1{font-size:clamp(26px,5.4vw,40px);font-weight:900;letter-spacing:-.03em;line-height:1.2;margin:0;text-wrap:balance}
 .lead{margin:0;color:var(--sub);font-size:16px;font-weight:600}
 a{color:inherit}
@@ -78,17 +78,19 @@ const 묶음 = (x, brand) => `<div class="item multi">${brand?`<span class="bran
 const item = (x, brand) => x.링크 ? 묶음(x, brand) : 열림(x)
   ? `<a class="item" href="${esc(x.주소)}">${brand?`<span class="brand">${esc(brand)}</span>`:''}<b>${esc(x.이름)}</b><small>${esc(x.설명||'')}</small><span class="go">시작하기</span></a>`
   : `<div class="item off">${brand?`<span class="brand">${esc(brand)}</span>`:''}<b>${esc(x.이름)}</b><small>${esc(x.설명||'')}</small><span class="go">준비 중</span></div>`;
-const head = `<header><div class="logo">테라<span>러닝</span></div></header>`;
+const LOGOS = {"1": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 230 56\" width=\"230\" height=\"56\" role=\"img\" aria-label=\"테라러닝\"><g transform=\"translate(0 4) scale(0.09375)\"><rect width=\"512\" height=\"512\" rx=\"112\" fill=\"#E5202E\"/><path d=\"M27.34375 -707.03125H636.71875V-556.640625H423.828125V0.0H240.234375V-556.640625H27.34375Z\" fill=\"#fff\" transform=\"translate(66 412) scale(0.40)\"/><path d=\"M389.6484375 0.0H203.125V-535.15625H199.21875L42.96875 -441.40625V-600.5859375L217.7734375 -707.03125H389.6484375Z M506.1328125 -133.7890625 768.828125 -354.4921875Q799.58984375 -380.859375 817.65625 -399.90234375Q835.72265625 -418.9453125 845.732421875 -439.453125Q855.7421875 -459.9609375 855.7421875 -484.375Q855.7421875 -524.90234375 829.619140625 -549.072265625Q803.49609375 -573.2421875 761.9921875 -573.2421875Q720.48828125 -573.2421875 695.341796875 -548.33984375Q670.1953125 -523.4375 670.1953125 -478.515625H493.4375Q493.4375 -551.26953125 526.640625 -605.224609375Q559.84375 -659.1796875 620.634765625 -687.98828125Q681.42578125 -716.796875 761.9921875 -716.796875Q844.51171875 -716.796875 906.767578125 -689.94140625Q969.0234375 -663.0859375 1002.71484375 -614.013671875Q1036.40625 -564.94140625 1036.40625 -500.0Q1036.40625 -457.03125 1019.072265625 -417.48046875Q1001.73828125 -377.9296875 958.525390625 -329.58984375Q915.3125 -281.25 836.2109375 -214.84375L764.921875 -153.3203125V-149.4140625H1044.21875V0.0H506.1328125Z\" fill=\"#fff\" transform=\"translate(336 214) scale(0.135)\"/></g><text x=\"62\" y=\"41\" font-family=\"Pretendard,'Noto Sans KR','Malgun Gothic',sans-serif\" font-weight=\"900\" font-size=\"31\" letter-spacing=\"-1\" fill=\"#111419\">테라러닝</text></svg>", "2": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 230 56\" width=\"230\" height=\"56\" role=\"img\" aria-label=\"테라러닝\"><g transform=\"translate(0 4) scale(0.09375)\"><rect width=\"512\" height=\"512\" rx=\"112\" fill=\"#E5202E\"/><path d=\"M27.34375 -707.03125H636.71875V-556.640625H423.828125V0.0H240.234375V-556.640625H27.34375Z\" fill=\"#fff\" transform=\"translate(66 412) scale(0.40)\"/><path d=\"M389.6484375 0.0H203.125V-535.15625H199.21875L42.96875 -441.40625V-600.5859375L217.7734375 -707.03125H389.6484375Z M506.1328125 -133.7890625 768.828125 -354.4921875Q799.58984375 -380.859375 817.65625 -399.90234375Q835.72265625 -418.9453125 845.732421875 -439.453125Q855.7421875 -459.9609375 855.7421875 -484.375Q855.7421875 -524.90234375 829.619140625 -549.072265625Q803.49609375 -573.2421875 761.9921875 -573.2421875Q720.48828125 -573.2421875 695.341796875 -548.33984375Q670.1953125 -523.4375 670.1953125 -478.515625H493.4375Q493.4375 -551.26953125 526.640625 -605.224609375Q559.84375 -659.1796875 620.634765625 -687.98828125Q681.42578125 -716.796875 761.9921875 -716.796875Q844.51171875 -716.796875 906.767578125 -689.94140625Q969.0234375 -663.0859375 1002.71484375 -614.013671875Q1036.40625 -564.94140625 1036.40625 -500.0Q1036.40625 -457.03125 1019.072265625 -417.48046875Q1001.73828125 -377.9296875 958.525390625 -329.58984375Q915.3125 -281.25 836.2109375 -214.84375L764.921875 -153.3203125V-149.4140625H1044.21875V0.0H506.1328125Z\" fill=\"#fff\" transform=\"translate(336 214) scale(0.135)\"/></g><text x=\"62\" y=\"27\" font-family=\"Pretendard,'Noto Sans KR','Malgun Gothic',sans-serif\" font-weight=\"900\" font-size=\"22\" letter-spacing=\"1\" fill=\"#111419\">TERA</text><text x=\"62\" y=\"49\" font-family=\"Pretendard,'Noto Sans KR','Malgun Gothic',sans-serif\" font-weight=\"700\" font-size=\"14.5\" letter-spacing=\"3.2\" fill=\"#111419\">LEARNING</text></svg>", "3": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 290 56\" width=\"290\" height=\"56\" role=\"img\" aria-label=\"테라러닝\"><g transform=\"translate(-4 2) scale(0.10156)\"><path d=\"M27.34375 -707.03125H636.71875V-556.640625H423.828125V0.0H240.234375V-556.640625H27.34375Z\" fill=\"#111419\" transform=\"translate(40 440) scale(0.50)\"/><path d=\"M389.6484375 0.0H203.125V-535.15625H199.21875L42.96875 -441.40625V-600.5859375L217.7734375 -707.03125H389.6484375Z M506.1328125 -133.7890625 768.828125 -354.4921875Q799.58984375 -380.859375 817.65625 -399.90234375Q835.72265625 -418.9453125 845.732421875 -439.453125Q855.7421875 -459.9609375 855.7421875 -484.375Q855.7421875 -524.90234375 829.619140625 -549.072265625Q803.49609375 -573.2421875 761.9921875 -573.2421875Q720.48828125 -573.2421875 695.341796875 -548.33984375Q670.1953125 -523.4375 670.1953125 -478.515625H493.4375Q493.4375 -551.26953125 526.640625 -605.224609375Q559.84375 -659.1796875 620.634765625 -687.98828125Q681.42578125 -716.796875 761.9921875 -716.796875Q844.51171875 -716.796875 906.767578125 -689.94140625Q969.0234375 -663.0859375 1002.71484375 -614.013671875Q1036.40625 -564.94140625 1036.40625 -500.0Q1036.40625 -457.03125 1019.072265625 -417.48046875Q1001.73828125 -377.9296875 958.525390625 -329.58984375Q915.3125 -281.25 836.2109375 -214.84375L764.921875 -153.3203125V-149.4140625H1044.21875V0.0H506.1328125Z\" fill=\"#E5202E\" transform=\"translate(340 190) scale(0.150)\"/></g><text x=\"58\" y=\"40\" font-family=\"Pretendard,'Noto Sans KR','Malgun Gothic',sans-serif\" font-weight=\"900\" font-size=\"26\" letter-spacing=\"0.5\" fill=\"#111419\">TERA<tspan fill=\"#E5202E\" font-weight=\"700\"> LEARNING</tspan></text></svg>"};
+const LOGO = LOGOS[new URLSearchParams(location.search).get('logo')] || LOGOS['1'];
+const head = `<header><a class="logo" href="./" aria-label="테라러닝">${LOGO}</a></header>`;
 const bar = SIAN ? `<nav class="sian" aria-label="시안">${[['a','A 분야 칩'],['b','B 나는 누구'],['c','C 검색']].map(([k,l])=>`<a href="#${k}" aria-current="${k===V}">${l}</a>`).join('')}</nav>` : '';
-const foot = bar + `<footer>테라러닝 · 기출 문항은 시행기관이 공개한 자료에서 가져오고 출처를 적어요.</footer>`;
+const foot = bar + `<footer>© 테라러닝 · 기출 문항은 시행기관이 공개한 자료에서 가져오고 출처를 적어요.</footer>`;
 
 function viewA(){
   let pick = FIELDS[0].id;
   const draw = () => {
     const f = FIELDS.find(f=>f.id===pick);
     app.innerHTML = `${head}
-      <h1>무슨 시험이든,<br>오늘 할 것만.</h1>
-      <p class="lead">분야를 고르면 그 분야 시험이 나와요.</p>
+      <h1>모두의 시험</h1>
+      <p class="lead">수능부터 9급 공채, 건축기사, 세무사 1차까지.</p>
       <div class="chips" role="toolbar" aria-label="분야">${FIELDS.map(f=>`<button type="button" data-f="${f.id}" aria-pressed="${f.id===pick}">${esc(f.이름)}</button>`).join('')}</div>
       <section class="field"><h2>${esc(f.브랜드)}<span>${esc(f.대상)}</span></h2>
         <div class="grid">${f.종목.map(x=>item(x)).join('')}</div></section>${foot}`;
@@ -105,7 +107,7 @@ function viewB(){
       <h1>어떤 시험을 준비하세요?</h1>
       <div class="who">${FIELDS.map(f=>`<button type="button" data-f="${f.id}" aria-pressed="${f.id===pick}"><b>${esc(f.이름)}</b><small>${esc(f.대상)}</small></button>`).join('')}</div>
       ${f ? `<section class="field"><h2>${esc(f.브랜드)}</h2><div class="grid">${f.종목.map(x=>item(x)).join('')}</div></section>`
-          : `<p class="lead">하나를 누르면 그 분야 시험이 아래에 나와요.</p>`}${foot}`;
+          : ''}${foot}`;
   };
   app.addEventListener('click', e=>{ const b=e.target.closest('[data-f]'); if(b){ pick=b.dataset.f; draw(); }});
   draw();
