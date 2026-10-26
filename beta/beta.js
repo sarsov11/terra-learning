@@ -9,6 +9,88 @@
   "use strict";
   var W = window, D = document;
   if (W.TerraBeta) return;
+  /* 글씨 쓰기 — 글자가 하나씩 떨리며 내려앉아 손으로 쓰는 듯 보이게 한다(2026-10-26 대표님 「진동효과로 글이 써지는 듯한 느낌」).
+   * TW.write(el,{delay,max,step,dur}) 바로 쓰기 · TW.say(el,글) 글을 바꾸며 쓰기 · TW.seq(els) 차례로 쓰기
+   * TW.view(root,[[선택자,옵션]…]) 화면에 들어올 때 쓰기(숨겨진 칸은 보일 때 쓴다).
+   * 다 쓰면 원래 글자 노드로 되돌린다. 움직임 줄이기 설정이면 아무것도 안 한다. */
+  var TW = (function () {
+    var D = document, RM = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)");
+    var KF = [
+      { opacity: 0, transform: "translateY(.14em) scale(1.35) rotate(-8deg)" },
+      { opacity: 1, transform: "translate(.05em,-.04em) scale(.94) rotate(5deg)", offset: .35 },
+      { opacity: 1, transform: "translate(-.04em,.03em) rotate(-3deg)", offset: .55 },
+      { opacity: 1, transform: "translate(.02em,-.01em) rotate(1.5deg)", offset: .75 },
+      { opacity: 1, transform: "none" }];
+    var CH = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\s\S]/g;
+    function off() { return !Element.prototype.animate || (RM && RM.matches); }
+    function texts(el) {
+      var out = [], w = D.createTreeWalker(el, 4, null, false), n;
+      while ((n = w.nextNode())) {
+        if (!/\S/.test(n.nodeValue)) continue;
+        var p = n.parentNode;
+        if (p.closest && p.closest("script,style,svg,textarea,[data-tw]")) continue;
+        out.push(n);
+      }
+      return out;
+    }
+    function write(el, o) {
+      if (!el) return 0;
+      o = o || {}; el.style.visibility = "";
+      if (off()) return 0;
+      var ns = texts(el), n = 0;
+      ns.forEach(function (t) { n += t.nodeValue.replace(/\s/g, "").length; });
+      if (!n) return 0;
+      el.style.wordBreak = "keep-all"; el.style.overflowWrap = "break-word";   /* 쓰는 동안(낱말 단위 줄바꿈)과 뒤가 같게 */
+      var dur = o.dur || 320, step = Math.min(o.step || 34, (o.max || 900) / n), d = o.delay || 0, i = 0, boxes = [], cs = [];
+      ns.forEach(function (t) {
+        var box = D.createElement("t-w"); box.setAttribute("data-tw", "");
+        t.nodeValue.split(/(\s+)/).forEach(function (p) {
+          if (!p) return;
+          if (!/\S/.test(p)) { box.appendChild(D.createTextNode(p)); return; }
+          var w = D.createElement("t-w"); w.style.whiteSpace = "nowrap";
+          p.match(CH).forEach(function (c) {
+            var s = D.createElement("t-w"); s.textContent = c; s.style.display = "inline-block";
+            w.appendChild(s); cs.push([s, d + step * i++]);
+          });
+          box.appendChild(w);
+        });
+        box._t = t.nodeValue; t.parentNode.replaceChild(box, t); boxes.push(box);
+      });
+      cs.forEach(function (x) { x[0].animate(KF, { duration: dur, delay: x[1], easing: "cubic-bezier(.2,.7,.3,1)", fill: "both" }); });
+      var end = d + step * (i - 1) + dur;
+      setTimeout(function () { boxes.forEach(function (b) { if (b.parentNode) b.parentNode.replaceChild(D.createTextNode(b._t), b); }); }, end + 80);
+      return end;
+    }
+    function say(el, t, o) { if (!el) return 0; el.textContent = t; return write(el, o || { max: 520 }); }
+    function seq(els, o) {
+      o = o || {}; var t = o.delay || 0;
+      [].forEach.call(els, function (el) {
+        var e = write(el, { delay: t, max: o.max, dur: o.dur });
+        if (e) t = Math.min(o.cap || 1500, t + Math.max(70, (e - t) * .45));
+      });
+      return t;
+    }
+    function view(root, spec) {
+      var list = [];
+      spec.forEach(function (s) { [].forEach.call(root.querySelectorAll(s[0]), function (el) { if (!el._two) { el._two = s[1] || {}; list.push(el); } }); });
+      if (off() || !list.length) return null;
+      if (!window.IntersectionObserver) { seq(list); return null; }
+      var clock = 0, io = new IntersectionObserver(function (es) {
+        var vis = es.filter(function (e) { return e.isIntersecting; }).map(function (e) { return e.target; });
+        vis.sort(function (a, b) { return a.compareDocumentPosition(b) & 4 ? -1 : 1; });
+        var now = Date.now();   /* 여러 번에 나뉘어 들어와도 위에서부터 차례로 쓴다 */
+        vis.forEach(function (el) {
+          io.unobserve(el); var oo = el._two;
+          var at = Math.min(Math.max(now + (oo.delay || 0), clock), now + 1400);
+          clock = at + (oo.gap || 40);
+          write(el, { delay: at - now, max: oo.max, step: oo.step, dur: oo.dur });
+        });
+      }, { rootMargin: "0px 0px -4% 0px" });
+      list.forEach(function (el) { if (texts(el).length) el.style.visibility = "hidden"; io.observe(el); });
+      return io;
+    }
+    return { write: write, say: say, seq: seq, view: view };
+  })();
   var me = D.currentScript;
   var BAKED = "https://terra-beta.teralearning.workers.dev";   /* 허브 사이트 사본은 베타배포.py 가 서버 주소로 바꿔 쓴다. Worker 사본은 자기 주소를 쓴다 */
   var API = (me && me.getAttribute("data-api")) || (BAKED.indexOf("http") === 0 ? BAKED : (me && me.src ? me.src.replace(/\/[^\/]*$/, "") : ""));
@@ -157,7 +239,7 @@
   function pill() {
     if (!joined()) return; mount();
     if (root.querySelector(".pill")) return;
-    var b = el("button", "pill"); b.innerHTML = '<span class="dot"></span>베타'; b.onclick = menu; root.appendChild(b);
+    var b = el("button", "pill"); b.innerHTML = '<span class="dot"></span>베타'; b.onclick = menu; root.appendChild(b); TW.write(b, { max: 200 });
   }
   function close() { if (panelEl) { panelEl.remove(); panelEl = null; } }
   function sheet(build) {
@@ -165,6 +247,7 @@
     var w = el("div", "wrap"), bx = el("div", "box"); w.appendChild(bx);
     w.addEventListener("click", function (e) { if (e.target === w) close(); });
     build(bx); root.appendChild(w); panelEl = w;
+    TW.seq(bx.querySelectorAll("h3,p,label,.opt,.stat div,.btn"), { max: 520, cap: 1600 });
     var f = bx.querySelector("input,textarea"); if (f && !("ontouchstart" in W)) f.focus();
     return bx;
   }
@@ -189,7 +272,7 @@
         join(i.value, function (j) {
           o.disabled = false;
           if (j && j.ok) { close(); toast(j.name + " 베타에 연결됐습니다"); }
-          else err.textContent = j ? j.err : "인터넷 연결을 확인해 주세요";
+          else TW.say(err, j ? j.err : "인터넷 연결을 확인해 주세요");
         });
       });
     });
@@ -197,7 +280,7 @@
   function toast(t) {
     mount(); var x = el("div"); x.textContent = t;
     x.style.cssText = "position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:2147483002;background:#1d2433;color:#fff;padding:10px 16px;border-radius:999px;font:600 14px system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.3)";
-    root.appendChild(x); setTimeout(function () { x.remove(); }, 2600);
+    root.appendChild(x); TW.write(x, { max: 520 }); setTimeout(function () { x.remove(); }, 2600);
   }
   function menu() {
     sheet(function (bx) {
@@ -224,7 +307,7 @@
       bx.appendChild(el("p", null, "불편한 점, 틀린 정답, 있었으면 하는 기능을 적어 주세요. 지금 화면 이름(" + scr + ")이 같이 갑니다."));
       var tx = el("textarea"); tx.maxLength = 1500; bx.appendChild(tx);
       buttons(bx, "보내기", function (err) {
-        if (tx.value.trim().length < 2) { err.textContent = "내용을 적어 주세요"; return; }
+        if (tx.value.trim().length < 2) { TW.say(err, "내용을 적어 주세요"); return; }
         queue("feedback", { text: tx.value.trim() }); close(); toast("받았습니다. 고마워요");
       });
     });
@@ -239,7 +322,7 @@
       choice(bx, "무엇이 문제인가요", REASONS, "reason", a);
       bx.appendChild(el("label", null, "한 줄 설명 (선택)")); var tx = el("input"); tx.maxLength = 500; tx.placeholder = "예: 정답이 ③ 이어야 합니다"; bx.appendChild(tx);
       buttons(bx, "신고", function (err) {
-        if (!a.reason) { err.textContent = "사유를 골라 주세요"; return; }
+        if (!a.reason) { TW.say(err, "사유를 골라 주세요"); return; }
         S.uid = S.uid || rid(20); S.rq = S.rq || [];
         S.rq.push({ eid: rid(16), ctx: ctx, reason: a.reason, text: tx.value.trim() }); save(); flushReports();
         close(); toast("신고 받았습니다. 확인 후 고칩니다");
@@ -257,7 +340,7 @@
       choice(bx, "4. 돈을 내고도 쓰겠다? 다음 시험 때 유료라면", ["안 쓴다", "월 5천 원까지", "월 1만 원까지", "월 2만 원 이상도 낸다"], "pay", a);
       bx.appendChild(el("label", null, "5. 고쳤으면 하는 것")); var b5 = el("textarea"); b5.maxLength = 1000; bx.appendChild(b5);
       buttons(bx, "보내기", function (err) {
-        if (!a.expect || !a.help || !a.pay) { err.textContent = "1·2·4번은 골라 주세요"; return; }
+        if (!a.expect || !a.help || !a.pay) { TW.say(err, "1·2·4번은 골라 주세요"); return; }
         a.help = a.help.charAt(0); a.best = b3.value.trim(); a.worst = b5.value.trim();
         queue("survey", a); S.done = S.done || {}; S.done.survey = 1; save(); close(); toast("후기 고마워요");
       });
@@ -272,8 +355,8 @@
       choice(bx, "결과", ["합격", "불합격", "시험 안 봄"], "result", a);
       bx.appendChild(el("label", null, "점수 (선택, 100점 만점 기준)")); var sc = el("input"); sc.type = "number"; sc.min = 0; sc.max = 100; sc.inputMode = "decimal"; bx.appendChild(sc);
       buttons(bx, "보내기", function (err) {
-        if (!a.level || !a.result) { err.textContent = "시험과 결과를 골라 주세요"; return; }
-        if (sc.value !== "") { var n = +sc.value; if (!(n >= 0 && n <= 100)) { err.textContent = "점수는 0~100"; return; } a.score = n; }
+        if (!a.level || !a.result) { TW.say(err, "시험과 결과를 골라 주세요"); return; }
+        if (sc.value !== "") { var n = +sc.value; if (!(n >= 0 && n <= 100)) { TW.say(err, "점수는 0~100"); return; } a.score = n; }
         queue("pass", a); S.done = S.done || {}; S.done.pass = 1; save(); close(); toast(a.result === "합격" ? "축하합니다!" : "알려 줘서 고마워요");
       });
     });
@@ -287,7 +370,7 @@
         post("/api/leave", { uid: S.uid, tok: S.tok }, function (j) {
           o.disabled = false;
           if (j && j.ok) { S = {}; save(); try { localStorage.removeItem(KEY); } catch (e) { } close(); if (root) { var p = root.querySelector(".pill"); if (p) p.remove(); } toast("지웠습니다"); }
-          else err.textContent = j ? j.err : "인터넷 연결이 필요합니다";
+          else TW.say(err, j ? j.err : "인터넷 연결이 필요합니다");
         });
       });
     });
@@ -327,7 +410,7 @@
       a.onclick = name === "result" ? feedback : menu;
     } else if (name === "settings") { a.textContent = "베타 초대 코드 넣기"; a.onclick = function () { codeSheet(""); }; }
     else return;
-    slot.appendChild(a);
+    slot.appendChild(a); TW.write(a, { max: 600 });
   }
   function slots() {
     [].forEach.call(D.querySelectorAll(".beta-slot[data-beta]:not([data-on])"), function (s) { try { mountSlot(s); } catch (e) { } });

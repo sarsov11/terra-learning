@@ -93,6 +93,90 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--sub);font-size:14px}
 <p class="sm">문의·삭제 요청은 앱 안의 「베타 → 의견 보내기」로도 받습니다. <a href="privacy.html">개인정보 처리 안내</a></p>
 </main>
 <script>
+/* 글씨 쓰기 — 글자가 하나씩 떨리며 내려앉아 손으로 쓰는 듯 보이게 한다(2026-10-26 대표님 「진동효과로 글이 써지는 듯한 느낌」).
+ * TW.write(el,{delay,max,step,dur}) 바로 쓰기 · TW.say(el,글) 글을 바꾸며 쓰기 · TW.seq(els) 차례로 쓰기
+ * TW.view(root,[[선택자,옵션]…]) 화면에 들어올 때 쓰기(숨겨진 칸은 보일 때 쓴다).
+ * 다 쓰면 원래 글자 노드로 되돌린다. 움직임 줄이기 설정이면 아무것도 안 한다. */
+var TW = (function () {
+  var D = document, RM = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)");
+  var KF = [
+    { opacity: 0, transform: "translateY(.14em) scale(1.35) rotate(-8deg)" },
+    { opacity: 1, transform: "translate(.05em,-.04em) scale(.94) rotate(5deg)", offset: .35 },
+    { opacity: 1, transform: "translate(-.04em,.03em) rotate(-3deg)", offset: .55 },
+    { opacity: 1, transform: "translate(.02em,-.01em) rotate(1.5deg)", offset: .75 },
+    { opacity: 1, transform: "none" }];
+  var CH = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\s\S]/g;
+  function off() { return !Element.prototype.animate || (RM && RM.matches); }
+  function texts(el) {
+    var out = [], w = D.createTreeWalker(el, 4, null, false), n;
+    while ((n = w.nextNode())) {
+      if (!/\S/.test(n.nodeValue)) continue;
+      var p = n.parentNode;
+      if (p.closest && p.closest("script,style,svg,textarea,[data-tw]")) continue;
+      out.push(n);
+    }
+    return out;
+  }
+  function write(el, o) {
+    if (!el) return 0;
+    o = o || {}; el.style.visibility = "";
+    if (off()) return 0;
+    var ns = texts(el), n = 0;
+    ns.forEach(function (t) { n += t.nodeValue.replace(/\s/g, "").length; });
+    if (!n) return 0;
+    el.style.wordBreak = "keep-all"; el.style.overflowWrap = "break-word";   /* 쓰는 동안(낱말 단위 줄바꿈)과 뒤가 같게 */
+    var dur = o.dur || 320, step = Math.min(o.step || 34, (o.max || 900) / n), d = o.delay || 0, i = 0, boxes = [], cs = [];
+    ns.forEach(function (t) {
+      var box = D.createElement("t-w"); box.setAttribute("data-tw", "");
+      t.nodeValue.split(/(\s+)/).forEach(function (p) {
+        if (!p) return;
+        if (!/\S/.test(p)) { box.appendChild(D.createTextNode(p)); return; }
+        var w = D.createElement("t-w"); w.style.whiteSpace = "nowrap";
+        p.match(CH).forEach(function (c) {
+          var s = D.createElement("t-w"); s.textContent = c; s.style.display = "inline-block";
+          w.appendChild(s); cs.push([s, d + step * i++]);
+        });
+        box.appendChild(w);
+      });
+      box._t = t.nodeValue; t.parentNode.replaceChild(box, t); boxes.push(box);
+    });
+    cs.forEach(function (x) { x[0].animate(KF, { duration: dur, delay: x[1], easing: "cubic-bezier(.2,.7,.3,1)", fill: "both" }); });
+    var end = d + step * (i - 1) + dur;
+    setTimeout(function () { boxes.forEach(function (b) { if (b.parentNode) b.parentNode.replaceChild(D.createTextNode(b._t), b); }); }, end + 80);
+    return end;
+  }
+  function say(el, t, o) { if (!el) return 0; el.textContent = t; return write(el, o || { max: 520 }); }
+  function seq(els, o) {
+    o = o || {}; var t = o.delay || 0;
+    [].forEach.call(els, function (el) {
+      var e = write(el, { delay: t, max: o.max, dur: o.dur });
+      if (e) t = Math.min(o.cap || 1500, t + Math.max(70, (e - t) * .45));
+    });
+    return t;
+  }
+  function view(root, spec) {
+    var list = [];
+    spec.forEach(function (s) { [].forEach.call(root.querySelectorAll(s[0]), function (el) { if (!el._two) { el._two = s[1] || {}; list.push(el); } }); });
+    if (off() || !list.length) return null;
+    if (!window.IntersectionObserver) { seq(list); return null; }
+    var clock = 0, io = new IntersectionObserver(function (es) {
+      var vis = es.filter(function (e) { return e.isIntersecting; }).map(function (e) { return e.target; });
+      vis.sort(function (a, b) { return a.compareDocumentPosition(b) & 4 ? -1 : 1; });
+      var now = Date.now();   /* 여러 번에 나뉘어 들어와도 위에서부터 차례로 쓴다 */
+      vis.forEach(function (el) {
+        io.unobserve(el); var oo = el._two;
+        var at = Math.min(Math.max(now + (oo.delay || 0), clock), now + 1400);
+        clock = at + (oo.gap || 40);
+        write(el, { delay: at - now, max: oo.max, step: oo.step, dur: oo.dur });
+      });
+    }, { rootMargin: "0px 0px -4% 0px" });
+    list.forEach(function (el) { if (texts(el).length) el.style.visibility = "hidden"; io.observe(el); });
+    return io;
+  }
+  return { write: write, say: say, seq: seq, view: view };
+})();
+TW.view(document, [["h1",{max:700}], ["form .lead, main > .lead",{max:1500}], ["form h2",{max:300}], ["form .hint",{max:1000}], ["form label.f",{max:420}], [".seg label",{max:200}],
+  ["form .card > b",{max:600}], [".agree span",{max:1500}], ["form .go",{max:300}], ["summary",{max:400}], ["details label.f",{max:300}], ["details .go",{max:300}], ["main > p.sm",{max:800}]]);
 var API=(new URLSearchParams(location.search).get("api"))||"https://terra-beta.teralearning.workers.dev";
 var REG=["서울","부산","대구","인천","광주","대전","울산","세종","경기","강원","충북","충남","전북","전남","경북","경남","제주"];
 var $=function(s){return document.querySelector(s)},TR={};
@@ -104,24 +188,26 @@ fetch(API+"/api/config").then(function(r){return r.json()}).then(function(c){
   $("#tracks").innerHTML=Object.keys(TR).map(function(k){var t=TR[k];
     return '<label class="tr"><input type="radio" name="track" value="'+k+'"'+(k===pre?" checked":"")+'><span><b>'+t.name+'</b><small>'+t.app+(t.exam?' · 시험 '+md(t.exam)+' · 발표 '+md(t.announce):' · 시험 전까지 계속')+'</small></span></label>'}).join("");
   [].forEach.call(document.querySelectorAll("input[name=track]"),function(i){i.onchange=sync});sync();
-}).catch(function(){$("#err").textContent="서버에 닿지 않습니다. 잠시 뒤 새로고침해 주세요."});
+  TW.view($("#tracks"),[[".tr b",{max:320,gap:70}],[".tr small",{max:500,gap:70}]]);
+}).catch(function(){TW.say($("#err"),"서버에 닿지 않습니다. 잠시 뒤 새로고침해 주세요.")});
 function cur(){var i=document.querySelector("input[name=track]:checked");return i?i.value:""}
 function sync(){var t=TR[cur()];$("#ticket").hidden=!!(t&&!t.exam)}
 $("#exam4").oninput=function(){this.value=this.value.replace(/\D/g,"").slice(0,4)};
 $("#f").onsubmit=function(e){e.preventDefault();var err=$("#err");err.textContent="";
-  var tk=cur();if(!tk){err.textContent="종목을 고르세요";return}
+  var tk=cur();if(!tk){TW.say(err,"종목을 고르세요");return}
   var pv=document.querySelector("input[name=prev]:checked");
   var b={track:tk,contact:$("#contact").value.trim(),exam4:$("#exam4").value,region:$("#region").value,prev:pv?pv.value==="1":null,src:$("#src").value,agree:$("#agree").checked};
-  if(!b.agree){err.textContent="개인정보 수집·이용에 동의해야 신청할 수 있습니다";return}
+  if(!b.agree){TW.say(err,"개인정보 수집·이용에 동의해야 신청할 수 있습니다");return}
   $("#go").disabled=true;
   post("/api/signup",b).then(function(j){$("#go").disabled=false;
-    if(!j.ok){err.textContent=j.err;return}
+    if(!j.ok){TW.say(err,j.err);return}
     $("#f").hidden=true;$("#ok").hidden=false;$("#okName").textContent=j.name+" 베타";$("#code").textContent=j.code;
     $("#open").href=j.url+"?beta="+encodeURIComponent(j.code);$("#again").hidden=!j.again;
     if(j.room&&j.room.code){$("#room").hidden=false;$("#roomName").textContent=j.room.search;$("#roomCode").textContent=j.room.code}window.scrollTo(0,0);
-  }).catch(function(){$("#go").disabled=false;err.textContent="인터넷 연결을 확인하고 다시 눌러 주세요"})};
+    TW.seq(document.querySelectorAll("#okName, #ok > p.sm, #code, #open, #ok ol li, #room > b, #room > .sm"),{max:700,cap:2600});
+  }).catch(function(){$("#go").disabled=false;TW.say(err,"인터넷 연결을 확인하고 다시 눌러 주세요")})};
 $("#del").onclick=function(){var e=$("#derr");e.textContent="";
   if(!confirm("신청 정보와 앱 기록을 모두 지웁니다. 되돌릴 수 없습니다."))return;
-  post("/api/delete",{code:$("#dcode").value.trim(),contact:$("#dcontact").value.trim()}).then(function(j){e.textContent=j.ok?"지웠습니다.":j.err}).catch(function(){e.textContent="인터넷 연결을 확인해 주세요"})};
+  post("/api/delete",{code:$("#dcode").value.trim(),contact:$("#dcontact").value.trim()}).then(function(j){TW.say(e,j.ok?"지웠습니다.":j.err)}).catch(function(){TW.say(e,"인터넷 연결을 확인해 주세요")})};
 </script>
 </body></html>

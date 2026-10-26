@@ -64,6 +64,88 @@ footer{color:var(--sub);font-size:13px;font-weight:600;border-top:1px solid var(
 <body>
 <div class="wrap" id="app"></div>
 <script>
+/* 글씨 쓰기 — 글자가 하나씩 떨리며 내려앉아 손으로 쓰는 듯 보이게 한다(2026-10-26 대표님 「진동효과로 글이 써지는 듯한 느낌」).
+ * TW.write(el,{delay,max,step,dur}) 바로 쓰기 · TW.say(el,글) 글을 바꾸며 쓰기 · TW.seq(els) 차례로 쓰기
+ * TW.view(root,[[선택자,옵션]…]) 화면에 들어올 때 쓰기(숨겨진 칸은 보일 때 쓴다).
+ * 다 쓰면 원래 글자 노드로 되돌린다. 움직임 줄이기 설정이면 아무것도 안 한다. */
+var TW = (function () {
+  var D = document, RM = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)");
+  var KF = [
+    { opacity: 0, transform: "translateY(.14em) scale(1.35) rotate(-8deg)" },
+    { opacity: 1, transform: "translate(.05em,-.04em) scale(.94) rotate(5deg)", offset: .35 },
+    { opacity: 1, transform: "translate(-.04em,.03em) rotate(-3deg)", offset: .55 },
+    { opacity: 1, transform: "translate(.02em,-.01em) rotate(1.5deg)", offset: .75 },
+    { opacity: 1, transform: "none" }];
+  var CH = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\s\S]/g;
+  function off() { return !Element.prototype.animate || (RM && RM.matches); }
+  function texts(el) {
+    var out = [], w = D.createTreeWalker(el, 4, null, false), n;
+    while ((n = w.nextNode())) {
+      if (!/\S/.test(n.nodeValue)) continue;
+      var p = n.parentNode;
+      if (p.closest && p.closest("script,style,svg,textarea,[data-tw]")) continue;
+      out.push(n);
+    }
+    return out;
+  }
+  function write(el, o) {
+    if (!el) return 0;
+    o = o || {}; el.style.visibility = "";
+    if (off()) return 0;
+    var ns = texts(el), n = 0;
+    ns.forEach(function (t) { n += t.nodeValue.replace(/\s/g, "").length; });
+    if (!n) return 0;
+    el.style.wordBreak = "keep-all"; el.style.overflowWrap = "break-word";   /* 쓰는 동안(낱말 단위 줄바꿈)과 뒤가 같게 */
+    var dur = o.dur || 320, step = Math.min(o.step || 34, (o.max || 900) / n), d = o.delay || 0, i = 0, boxes = [], cs = [];
+    ns.forEach(function (t) {
+      var box = D.createElement("t-w"); box.setAttribute("data-tw", "");
+      t.nodeValue.split(/(\s+)/).forEach(function (p) {
+        if (!p) return;
+        if (!/\S/.test(p)) { box.appendChild(D.createTextNode(p)); return; }
+        var w = D.createElement("t-w"); w.style.whiteSpace = "nowrap";
+        p.match(CH).forEach(function (c) {
+          var s = D.createElement("t-w"); s.textContent = c; s.style.display = "inline-block";
+          w.appendChild(s); cs.push([s, d + step * i++]);
+        });
+        box.appendChild(w);
+      });
+      box._t = t.nodeValue; t.parentNode.replaceChild(box, t); boxes.push(box);
+    });
+    cs.forEach(function (x) { x[0].animate(KF, { duration: dur, delay: x[1], easing: "cubic-bezier(.2,.7,.3,1)", fill: "both" }); });
+    var end = d + step * (i - 1) + dur;
+    setTimeout(function () { boxes.forEach(function (b) { if (b.parentNode) b.parentNode.replaceChild(D.createTextNode(b._t), b); }); }, end + 80);
+    return end;
+  }
+  function say(el, t, o) { if (!el) return 0; el.textContent = t; return write(el, o || { max: 520 }); }
+  function seq(els, o) {
+    o = o || {}; var t = o.delay || 0;
+    [].forEach.call(els, function (el) {
+      var e = write(el, { delay: t, max: o.max, dur: o.dur });
+      if (e) t = Math.min(o.cap || 1500, t + Math.max(70, (e - t) * .45));
+    });
+    return t;
+  }
+  function view(root, spec) {
+    var list = [];
+    spec.forEach(function (s) { [].forEach.call(root.querySelectorAll(s[0]), function (el) { if (!el._two) { el._two = s[1] || {}; list.push(el); } }); });
+    if (off() || !list.length) return null;
+    if (!window.IntersectionObserver) { seq(list); return null; }
+    var clock = 0, io = new IntersectionObserver(function (es) {
+      var vis = es.filter(function (e) { return e.isIntersecting; }).map(function (e) { return e.target; });
+      vis.sort(function (a, b) { return a.compareDocumentPosition(b) & 4 ? -1 : 1; });
+      var now = Date.now();   /* 여러 번에 나뉘어 들어와도 위에서부터 차례로 쓴다 */
+      vis.forEach(function (el) {
+        io.unobserve(el); var oo = el._two;
+        var at = Math.min(Math.max(now + (oo.delay || 0), clock), now + 1400);
+        clock = at + (oo.gap || 40);
+        write(el, { delay: at - now, max: oo.max, step: oo.step, dur: oo.dur });
+      });
+    }, { rootMargin: "0px 0px -4% 0px" });
+    list.forEach(function (el) { if (texts(el).length) el.style.visibility = "hidden"; io.observe(el); });
+    return io;
+  }
+  return { write: write, say: say, seq: seq, view: view };
+})();
 const DATA = {"분야": [{"id": "daeip", "이름": "대입", "브랜드": "모두의 대입", "대상": "고등학생", "종목": [{"이름": "국어", "설명": "평가원 수능·모의평가 기출, 태블릿·PC 전용", "상태": "운영", "주소": "https://sarsov11.github.io/modu-daeip/gukeo/"}, {"이름": "통합사회", "설명": "통합사회 1·2 기출 O·X, 개념 강의 130강", "상태": "운영", "주소": "https://sarsov11.github.io/modu-tongsa/"}, {"이름": "한국사", "설명": "수능·모평·학평 기출 2,240문항, 개념 흐름 86단원", "상태": "운영", "주소": "https://sarsov11.github.io/modu-hanguksa/"}, {"이름": "통합과학", "설명": "2022 개정 교과서 단원별 자료 O·X, 킬러 드릴", "상태": "운영", "주소": "https://sarsov11.github.io/modu-tonggwa/"}, {"이름": "수학", "설명": "중1~고2 8,200문항, 단계별 풀이·손글씨 풀이판", "상태": "운영", "주소": "https://sarsov11.github.io/modu-math/"}, {"이름": "영어", "설명": "평가원·EBS 지문 944개, 문법·서술형·단어장", "상태": "운영", "주소": "https://sarsov11.github.io/modu-english/"}]}, {"id": "gongsi", "이름": "공무원", "브랜드": "진격의 공시", "대상": "공시생", "종목": [{"이름": "9급 공채", "설명": "국가직·지방직 일반행정", "상태": "운영", "주소": "https://jingyeok-gongsi.pages.dev/start.html?step=exam"}, {"이름": "9급 전문직렬", "설명": "세무·교정·검찰·관세·교육·복지 등", "상태": "운영", "주소": "https://jingyeok-gongsi.pages.dev/start.html?step=exam"}, {"이름": "경찰", "설명": "순경 공채 헌법·형사법·경찰학 기출", "상태": "운영", "주소": "https://jingyeok-gongsi.pages.dev/start.html?exam=police"}, {"이름": "소방", "설명": "소방사 공채 소방학개론·소방관계법규·행정법 기출", "상태": "운영", "주소": "https://jingyeok-gongsi.pages.dev/start.html?exam=fire"}, {"이름": "군무원", "설명": "9급 행정·군수·수사·전산", "상태": "운영", "주소": "https://jingyeok-gongsi.pages.dev/start.html?exam=gunmu"}, {"이름": "7급 공채", "설명": "국가직 28직렬·지방직 16직렬 전공 과목 (PSAT 준비 중)", "상태": "운영", "주소": "https://jingyeok-gongsi.pages.dev/start.html?exam=g7"}]}, {"id": "jagyeok", "이름": "자격증", "브랜드": "모두의 기사 · 모두의 자격", "대상": "성인 수험생", "종목": [{"이름": "기사", "설명": "68종목 필기 기출·개념·모의고사", "상태": "운영", "주소": "https://sarsov11.github.io/modu-gisa/?g=기사"}, {"이름": "산업기사", "설명": "61종목 필기 기출·개념·모의고사", "상태": "운영", "주소": "https://sarsov11.github.io/modu-gisa/?g=산업기사"}, {"이름": "기능사", "설명": "124종목 필기 기출·개념·모의고사", "상태": "운영", "주소": "https://sarsov11.github.io/modu-gisa/?g=기능사"}, {"이름": "공인중개사·행정사", "설명": "공인중개사 기출 10회분(현행 법령 기준), 행정사 1차 기출 O·X 1,352개", "상태": "운영", "주소": "https://sarsov11.github.io/modu-junggae/", "링크": [{"이름": "공인중개사", "주소": "https://sarsov11.github.io/modu-junggae/"}, {"이름": "행정사", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=ad"}]}, {"이름": "청소년상담사", "설명": "1·2·3급 필기 22과목, 기출 O·X 6,104개", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=youth"}, {"이름": "주택관리사보", "설명": "1차 회계원리·공동주택시설개론·민법, 기출 O·X 1,878개", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=housing"}, {"이름": "물류관리사", "설명": "필기 5과목, 기출 3,770문항(2020~2026, 7개년) · 2020~2024 책 해설 977개 · 개념카드 5,622줄", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=logi"}, {"이름": "손해평가사", "설명": "1차 보험법령·재배학·상법(보험편), 기출 O·X 991개", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=damage"}, {"이름": "경비지도사", "설명": "1차 민간경비론·법학개론, 기출 O·X 909개", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=sg"}, {"이름": "사회복지사 1급", "설명": "필기 8과목, 기출 O·X 3,162개", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=social1"}, {"이름": "소방시설관리사", "설명": "1차 5과목, 기출 O·X 1,213개", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=firemgr"}, {"이름": "산업안전지도사", "설명": "1차 산업안전일반·보건법령·기업진단, 기출 O·X 855개", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=safetyc"}, {"이름": "가맹거래사", "설명": "1차 경영학·민법·경제법, 기출 O·X 2,085개", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=franchise"}, {"이름": "경영지도사", "설명": "1차 5과목, 기출 O·X 1,569개", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=mgmtc"}, {"이름": "지식재산능력시험", "설명": "4영역 O·X 4,020개", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=ipat"}, {"이름": "보험계리사·손해사정사", "설명": "보험계리사 1차 4과목, 기출 O·X 1,517개", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=actuary", "링크": [{"이름": "보험계리사", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=actuary"}, {"이름": "손해사정사", "주소": null}]}, {"이름": "회계·세무", "설명": "재경관리사 재무·원가·세무회계(기출 O·X 5,399) + 전산세무 2급 재무·원가·세무·실무 분개(1,996)", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jagyeok/start.html?exam=jaegyeong"}]}, {"id": "chwieop", "이름": "취업", "브랜드": "진격의 NCS", "대상": "취업 준비생", "종목": [{"이름": "공기업 NCS", "설명": "NCS 10영역 자체 제작 문항·모의고사·영역별 진단", "상태": "운영", "주소": "https://sarsov11.github.io/jingyeok-ncs/"}]}, {"id": "jeonmunjik", "이름": "8대 전문직", "브랜드": "모두의 전문직", "대상": "8대 전문직 수험생", "종목": [{"이름": "세무사 1차", "설명": "2016~2026 기출, 재정학·세법학개론·회계학개론·선택과목 O·X", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/start.html?exam=semusa"}, {"이름": "공인회계사 1차", "설명": "2016~2026 기출 2,278문항(5과목) O·X·기출 풀기", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/start.html?exam=cpa"}, {"이름": "공인노무사 1차", "설명": "2016~2026 기출, 노동법Ⅰ·Ⅱ·민법·사회보험법·경영/경제 O·X", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/start.html?exam=nomusa"}, {"이름": "변리사 1차", "설명": "2016~2026 기출, 산업재산권법·민법·자연과학 O·X", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/start.html?exam=patent"}, {"이름": "변호사시험 선택형", "설명": "법무부 공개 기출 중 객관식", "상태": "수집", "주소": null}, {"이름": "법무사 1차", "설명": "2016~2026 기출 2,200문항(4과목·8법) O·X", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/start.html?exam=beopmu"}, {"이름": "관세사 1차", "설명": "2017~2026 기출 1,599문항(4과목) O·X·기출 풀기", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/start.html?exam=gwanse"}, {"이름": "전문직 2차 답안 훈련", "설명": "8대 전문직 2차 기출 4,527물음, 득점 요소 채점표와 목차·실전 쓰기", "상태": "운영", "주소": "https://sarsov11.github.io/modu-jeonmunjik/essay.html"}]}, {"id": "global", "이름": "해외", "브랜드": "テラ資格 · Terra Prep", "대상": "일본·미국 수험생", "종목": [{"이름": "日本 危険物·消防設備士", "설명": "危険物 甲種·乙種第1~6類·丙種, 消防設備士 甲·乙·乙6", "상태": "운영", "주소": "https://sarsov11.github.io/terra-shikaku/"}, {"이름": "日本 기사급 33시험", "설명": "IPA·電験·電気工事士·施工管理·技術士·建築士·ボイラー 등", "상태": "수집", "주소": null}, {"이름": "US CPA", "설명": "REG 세법 4영역, IRC 근거 문항", "상태": "운영", "주소": "https://sarsov11.github.io/terra-prep/start.html?exam=cpa"}, {"이름": "CFA", "설명": "Level I 윤리, O·X 230문항과 3지선다 69문항", "상태": "운영", "주소": "https://sarsov11.github.io/terra-prep/start.html?exam=cfa1"}]}]};
 const FIELDS = DATA.분야;
 const SIAN = /*SIAN*/false;
@@ -84,8 +166,14 @@ const head = `<header><a class="logo" href="./" aria-label="테라러닝">${LOGO
 const bar = SIAN ? `<nav class="sian" aria-label="시안">${[['a','A 분야 칩'],['b','B 나는 누구'],['c','C 검색']].map(([k,l])=>`<a href="#${k}" aria-current="${k===V}">${l}</a>`).join('')}</nav>` : '';
 const foot = bar + `<footer>© 테라러닝 · 기출 문항은 시행기관이 공개한 자료에서 가져오고 출처를 적어요.</footer>`;
 
+let ioNow = null;
+const 쓰기 = (first, spec) => { if (ioNow) ioNow.disconnect();
+  ioNow = TW.view(app, (first ? [['h1',{max:650}], ['.chips button',{max:220,gap:40}], ['.who button b',{max:220}], ['.who button small',{max:320}]] : [])
+    .concat(spec, first ? [['footer',{max:900}]] : [])); };
+const 카드 = [['.field h2',{max:500}], ['.item .brand',{max:300}], ['.item b',{max:300}], ['.item small',{max:520}], ['.item .go',{max:200}], ['.item .links a, .item .links .off',{max:260}]];
+
 function viewA(){
-  let pick = FIELDS[0].id;
+  let pick = FIELDS[0].id, first = true;
   const draw = () => {
     const f = FIELDS.find(f=>f.id===pick);
     app.innerHTML = `${head}
@@ -94,13 +182,14 @@ function viewA(){
       <div class="chips" role="toolbar" aria-label="분야">${FIELDS.map(f=>`<button type="button" data-f="${f.id}" aria-pressed="${f.id===pick}">${esc(f.이름)}</button>`).join('')}</div>
       <section class="field"><h2>${esc(f.브랜드)}<span>${esc(f.대상)}</span></h2>
         <div class="grid">${f.종목.map(x=>item(x)).join('')}</div></section>${foot}`;
+    쓰기(first, 카드); first = false;
   };
   app.addEventListener('click', e=>{ const b=e.target.closest('[data-f]'); if(b){ pick=b.dataset.f; draw(); }});
   draw();
 }
 
 function viewB(){
-  let pick = null;
+  let pick = null, first = true;
   const draw = () => {
     const f = FIELDS.find(f=>f.id===pick);
     app.innerHTML = `${head}
@@ -108,6 +197,7 @@ function viewB(){
       <div class="who">${FIELDS.map(f=>`<button type="button" data-f="${f.id}" aria-pressed="${f.id===pick}"><b>${esc(f.이름)}</b><small>${esc(f.대상)}</small></button>`).join('')}</div>
       ${f ? `<section class="field"><h2>${esc(f.브랜드)}</h2><div class="grid">${f.종목.map(x=>item(x)).join('')}</div></section>`
           : ''}${foot}`;
+    쓰기(first, 카드); first = false;
   };
   app.addEventListener('click', e=>{ const b=e.target.closest('[data-f]'); if(b){ pick=b.dataset.f; draw(); }});
   draw();
@@ -120,6 +210,7 @@ function viewC(){
     <div class="search"><label for="q" class="lead" style="position:absolute;left:-9999px">시험 이름</label>
       <input id="q" type="search" placeholder="예: 군무원, 중개사, 지게차" autocomplete="off"></div>
     <div class="list" id="list"></div>${foot}`;
+  TW.view(app, [['h1',{max:650}], ['footer',{max:900}]]);
   const list = document.getElementById('list');
   const draw = q => {
     const hit = all.filter(x => !q || (x.이름+x.설명+x.분야+x.브랜드).replace(/\s/g,'').includes(q.replace(/\s/g,'')));
@@ -128,6 +219,8 @@ function viewC(){
       ? `<a class="li" href="${esc(x.주소)}"><div><b>${esc(x.이름)}</b><small>${esc(x.브랜드)} · ${esc(x.설명||x.분야)}</small></div><span class="tag on">시작하기</span></a>`
       : `<div class="li"><div><b>${esc(x.이름)}</b><small>${esc(x.브랜드)} · ${esc(x.설명||x.분야)}</small></div><span class="tag off">준비 중</span></div>`).join('')
       : `<div class="empty">일치하는 시험이 없어요.</div>`;
+    if (ioNow) ioNow.disconnect();
+    ioNow = TW.view(list, [['.li b',{max:260,gap:30}], ['.li small',{max:420,gap:30}], ['.tag',{max:180,gap:30}], ['.empty',{max:500}]]);
   };
   document.getElementById('q').addEventListener('input', e=>draw(e.target.value.trim()));
   draw('');
