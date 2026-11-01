@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+tools/ipsi/_pdf/
+tools/ipsi/norm/*.new.json
