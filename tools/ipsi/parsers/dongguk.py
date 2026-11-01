@@ -177,6 +177,9 @@ def read_cell(page, box):
     """칸 → [(앞말 서명 or None, 정수)] 또는 [] (빈칸/'-'/'·') 또는 None(읽을 수 없음)."""
     out = []
     for ln in text_lines(glyphs(contours(page, box))):
+        ln = [g for g in ln if g["ch"] != "·"]  # 빈칸 표시 점(숫자 옆에 남은 점 포함)은 버림
+        if not ln:
+            continue
         # 맨 오른쪽부터 숫자/쉼표 연속 구간
         k = len(ln)
         while k > 0 and ln[k - 1]["ch"] is not None and (ln[k - 1]["ch"].isdigit() or ln[k - 1]["ch"] == ","):
@@ -190,9 +193,9 @@ def read_cell(page, box):
         s = "".join(g["ch"] for g in digits)
         if not re.fullmatch(r"\d{1,3}(,\d{3})*|\d+", s):
             return None
-        # 숫자 사이 간격 확인(떨어진 숫자 둘을 붙여 읽지 않도록)
+        # 숫자 사이 간격 확인(떨어진 숫자 둘을 붙여 읽지 않도록): 글자 중심 간격이 한 글자 폭(약 4.5pt) 안팎이어야 함
         for a, b in zip(digits, digits[1:]):
-            if b["x0"] - a["x1"] > 2.0:
+            if (b["x0"] + b["x1"]) / 2 - (a["x0"] + a["x1"]) / 2 > 6.5:
                 return None
         out.append((label_sig(lab) if lab else None, int(s.replace(",", ""))))
     return out
@@ -223,6 +226,8 @@ def grid(page):
     ys = _merge([h["top"] for h in hs if h["x0"] <= xm <= h["x1"] and y0 - 1 <= h["top"] <= y1 + 1])
     xd = (left + xs[0]) / 2
     yd = _merge([h["top"] for h in hs if h["x0"] <= xd <= h["x1"] and y0 - 1 <= h["top"] <= y1 + 1])
+    if right - xs[-1] < 2:
+        xs = xs[:-1]
     return [left] + xs + [right], ys, yd
 
 
@@ -285,8 +290,8 @@ def main(pdf_path, out_path):
             for i in range(1, n + 1 + (1 if has_total else 0)):
                 # 이름 칸 윤곽 구성 비교(수시표 행 i == 정시표 행 i)
                 if i <= n:
-                    a = ops_multiset(pdf.pages[ps - 1], (xs_s[0], ys_s[i], xs_s[2], ys_s[i + 1]))
-                    b = ops_multiset(pdf.pages[pj - 1], (xs_j[0], ys_j[i], xs_j[2], ys_j[i + 1]))
+                    a = ops_multiset(pdf.pages[ps - 1], (xs_s[1], ys_s[i], xs_s[2], ys_s[i + 1]))
+                    b = ops_multiset(pdf.pages[pj - 1], (xs_j[1], ys_j[i], xs_j[2], ys_j[i + 1]))
                     if not a:
                         raise SystemExit(f"p{ps} 행 {i}: 이름 칸이 비어 있음")
                     align.append(a == b)
@@ -481,7 +486,7 @@ def main(pdf_path, out_path):
     memo.extend(split_notes)
     memo.append("'★'(2026.04. 기준 광역화 모집단위 표시)는 이름에서 뺌: 경영대학, 바이오시스템대학, 열린전공학부")
     memo.append("단과대학: 표의 '대학' 칸 글자 그대로(불교·문과·이과·법과·사회과학·경찰사법·경영·바이오시스템·공과·첨단융합·사범·예술·약학). "
-                "열린전공학부는 대학 칸과 모집단위 칸이 합쳐져 단과대학 null. 불교미술·한국화·서양화·조소전공은 23쪽 기준 미술학부 소속")
+                "열린전공학부는 대학 칸과 모집단위 칸이 합쳐져 단과대학 null. 모집단위 이름은 표 그대로(23쪽은 불교미술·한국화·서양화를 '미술학부' 아래에 적음)")
     memo.append("계열: 표에 계열 칸이 없어 null(열린전공학부만 PDF가 인문/자연을 밝힘)")
     memo.append("빈칸 안의 작은 점(·)과 회색 칸(조소전공 수시, 불교미술·한국화·서양화·연극학부·스포츠문화학과·한국음악과 정시), 계 칸 '–'는 0으로 봄")
     memo.append("정시 체육교육과(가군)·조소전공(나군)은 수능 60%+실기 40%이나 PDF가 '수능위주 일반' 전형으로 분류 → 유형 수능")

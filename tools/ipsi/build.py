@@ -4,7 +4,7 @@ python tools/ipsi/build.py <PDF폴더>
 - 파서가 실패하거나 빈 결과를 내면 이전 정리본(norm/<id>.json)을 그대로 두고 상태에 적는다.
 - 숫자는 파서가 낸 그대로 쓴다. 여기서는 합치기·집계만 한다.
 """
-import datetime, json, pathlib, subprocess, sys
+import datetime, json, pathlib, re, subprocess, sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -20,6 +20,8 @@ manifest = json.loads(mf_path.read_text(encoding="utf-8")) if mf_path.exists() e
 KST = datetime.timezone(datetime.timedelta(hours=9))
 now = datetime.datetime.now(KST).isoformat(timespec="seconds")
 유형들 = {"학생부교과", "학생부종합", "논술", "실기/실적", "수능", "기타"}
+# 서울 밖 캠퍼스(세종·글로벌·자연·국제 등) 표시 — 단과대학 이름에 적힌 캠퍼스를 그대로 읽는다.
+지방캠 = re.compile(r"(세종|글로벌|자연|천안|안성|상주|삼척|도계|원주|글로컬|ERICA|에리카|국제|다빈치|죽전|용인)\s*캠퍼스")
 
 
 def valid(d):
@@ -74,8 +76,10 @@ for u in src["대학"]:
         info.update({"출처쪽": d.get("출처쪽", []), "전형": d["전형"], "메모": d.get("메모", []),
                      "행수": len(d["모집단위"]), "합계일치": ok, "합계불일치": bad})
         for r in d["모집단위"]:
+            m = 지방캠.search(r.get("단과대학") or "")
             행.append({"u": uid, "단과": r.get("단과대학"), "단위": r["모집단위"], "계열": r.get("계열"),
-                       "인원": r["인원"], "계": r.get("계"), "쪽": r.get("쪽"), "검증": r.get("검증")})
+                       "인원": r["인원"], "계": r.get("계"), "쪽": r.get("쪽"), "검증": r.get("검증"),
+                       "캠": m.group(0).replace(" ", "") if (m and u["묶음"] == "서울") else None})
     대학.append(info)
 
 OUT.write_text(json.dumps({"학년도": 2028, "만든때": now, "대학": 대학, "모집단위": 행},

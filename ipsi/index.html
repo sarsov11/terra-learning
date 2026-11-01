@@ -148,7 +148,7 @@ footer{color:var(--sub);font-size:13px;font-weight:600;border-top:1px solid var(
       if (!hit) return false;
       if (c.x && c.x.some(function (x) { return name.indexOf(x) !== -1; })) return false;
     }
-    if (S.g !== "전체" && 대학[r.u].묶음 !== S.g) return false;
+    if (S.g !== "전체" && (대학[r.u].묶음 !== S.g || (S.g === "서울" && r.캠))) return false;
     if (S.t) {
       var any = Object.keys(r.인원).some(function (k) { return 전형[r.u][k] && 전형[r.u][k].유형 === S.t && r.인원[k] > 0; });
       if (!any) return false;
@@ -189,6 +189,7 @@ footer{color:var(--sub);font-size:13px;font-weight:600;border-top:1px solid var(
         rs.map(function (r) {
           var sum = Object.keys(r.인원).reduce(function (b, k) { return b + r.인원[k]; }, 0);
           var tags = tagsOf(r).map(function (t) { return '<span class="t' + (t.jeong ? " jeong" : "") + '">' + esc(t.lab) + " " + t.n + "</span>"; }).join("");
+          if (r.캠) tags = '<span class="t">' + esc(r.캠) + "</span>" + tags;
           if (r.검증 === "합계불일치") tags += '<span class="t chk" title="전형별 인원의 합이 PDF 표의 계와 다릅니다">PDF 계와 다름 · 확인 중</span>';
           var det = Object.keys(r.인원).map(function (k) {
             var t = 전형[r.u][k] || {};
