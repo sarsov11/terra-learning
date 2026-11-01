@@ -62,7 +62,7 @@ for u in src["대학"]:
 
     m = manifest.get(uid, {})
     info = {"id": uid, "이름": u["이름"], "묶음": u["묶음"], "PDF": m.get("주소"), "받은때": m.get("받은때"),
-            "확인한때": m.get("확인한때"), "상태": 상태}
+            "확인한때": m.get("확인한때"), "상태": 상태, "비고": u.get("비고")}
     if norm.exists():
         d = json.loads(norm.read_text(encoding="utf-8"))
         if not valid(d):

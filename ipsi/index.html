@@ -206,7 +206,7 @@ footer{color:var(--sub);font-size:13px;font-weight:600;border-top:1px solid var(
     $("status").innerHTML = "<table><thead><tr><th>대학</th><th>묶음</th><th style=\"text-align:right\">모집단위</th><th style=\"text-align:right\">계 일치</th><th>받은 날</th><th>원문</th></tr></thead><tbody>" +
       DB.대학.map(function (u) {
         var ok = u.행수 ? u.합계일치 + "/" + u.행수 : "—";
-        return "<tr><td>" + esc(u.이름) + "</td><td>" + esc(u.묶음) + '</td><td class="n">' + (u.행수 || "정리 중") + '</td><td class="n">' + ok +
+        return "<tr><td>" + esc(u.이름) + (u.비고 && !u.행수 ? '<br><small style="color:var(--sub);font-weight:600">' + esc(u.비고) + "</small>" : "") + "</td><td>" + esc(u.묶음) + '</td><td class="n">' + (u.행수 || (u.비고 ? "—" : "정리 중")) + '</td><td class="n">' + ok +
           "</td><td>" + esc((u.받은때 || "").slice(0, 10)) + "</td><td>" + (u.PDF ? '<a href="' + esc(u.PDF) + '" target="_blank" rel="noopener">PDF</a>' : "") + "</td></tr>";
       }).join("") + "</tbody></table>";
     var f = $("foot").firstElementChild;
