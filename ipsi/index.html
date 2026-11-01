@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>입시 비서 · 테라러닝</title>
+<meta name="description" content="희망 전공을 고르면 상위권 24개 대학의 2028학년도 모집단위와 전형별 모집인원을 한 번에 보여 줍니다.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+/* 테라러닝 허브 공통 색·글꼴을 그대로 쓴다(허브 index.html :root와 같은 값). */
+:root{--bg:#FFFFFF;--panel:#F5F3F3;--line:#E4DFDF;--ink:#111111;--sub:#4B5563;--red:#C8102E;--red-soft:#FCE9EC;--warn:#92400E;--warn-soft:#FEF3C7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif;font-weight:500;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:calc(env(safe-area-inset-top,0px) + 20px) calc(env(safe-area-inset-bottom,0px) + 48px)}
+.wrap{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{display:block;line-height:0}.logo svg{height:32px;width:auto}
+.back{font-weight:800;font-size:14px;color:var(--sub);text-decoration:none}
+h1{font-size:clamp(26px,5.4vw,40px);font-weight:900;letter-spacing:-.03em;line-height:1.2;margin:0;text-wrap:balance}
+h2{margin:0;font-size:20px;font-weight:900;letter-spacing:-.02em}
+.lead{margin:6px 0 0;color:var(--sub);font-size:16px;font-weight:600}
+a{color:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.search{display:flex;gap:8px}
+.search input{flex:1;min-width:0;font:inherit;font-size:18px;font-weight:700;padding:14px 16px;border-radius:14px;border:2px solid var(--ink);background:#fff;color:var(--ink)}
+.row{display:flex;flex-direction:column;gap:8px}
+.label{font-size:13px;font-weight:800;color:var(--sub);letter-spacing:.02em}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{font:inherit;font-weight:800;font-size:14.5px;border:0;border-radius:999px;padding:8px 14px;background:var(--panel);color:var(--ink);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.chips.small button{font-size:13.5px;padding:6px 12px}
+.sum{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;border-top:2px solid var(--ink);padding-top:12px}
+.sum b{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.sum span{color:var(--sub);font-weight:700;font-size:14px}
+.uni{display:flex;flex-direction:column}
+.uni-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:16px 2px 8px;border-bottom:2px solid var(--ink)}
+.uni-h b{font-size:19px;font-weight:900}
+.uni-h small{color:var(--sub);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+details.u{border-bottom:1px solid var(--line)}
+details.u summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:12px 2px}
+details.u summary::-webkit-details-marker{display:none}
+.nm{min-width:0}
+.nm b{font-size:16.5px;font-weight:900;overflow-wrap:anywhere}
+.nm small{display:block;color:var(--sub);font-size:12.5px;font-weight:600}
+.tot{font-weight:900;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tags{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:5px}
+.t{font-size:12.5px;font-weight:800;padding:3px 9px;border-radius:6px;background:var(--panel);font-variant-numeric:tabular-nums;white-space:nowrap}
+.t.jeong{background:var(--red-soft);color:var(--red)}
+.t.chk{background:var(--warn-soft);color:var(--warn)}
+.detail{padding:0 2px 14px;display:flex;flex-direction:column;gap:6px}
+.detail table{border-collapse:collapse;width:100%;font-size:14px}
+.detail td{padding:5px 0;border-bottom:1px dashed var(--line)}
+.detail td.n{text-align:right;font-weight:900;font-variant-numeric:tabular-nums;width:4em}
+.detail .src{color:var(--sub);font-size:12.5px;font-weight:600}
+.empty{color:var(--sub);font-weight:700;padding:18px 2px}
+.soon{border:2px dashed var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:4px}
+.soon b{font-size:16px;font-weight:900}
+.soon p{margin:0;color:var(--sub);font-size:14px;font-weight:600}
+.tag-soon{align-self:flex-start;font-size:12px;font-weight:900;padding:2px 9px;border-radius:6px;background:var(--panel);color:var(--sub)}
+.status{overflow-x:auto}
+.status table{border-collapse:collapse;width:100%;min-width:520px;font-size:13.5px}
+.status th{text-align:left;font-weight:800;color:var(--sub);border-bottom:2px solid var(--ink);padding:6px 4px}
+.status td{border-bottom:1px solid var(--line);padding:7px 4px;font-variant-numeric:tabular-nums}
+.status td.n{text-align:right}
+.status a{color:var(--red);font-weight:800;text-decoration:none}
+footer{color:var(--sub);font-size:13px;font-weight:600;border-top:1px solid var(--line);padding-top:16px;display:flex;flex-direction:column;gap:4px}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header><a class="logo" href="../" aria-label="테라러닝 허브"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 281 94" width="281" height="94" role="img" aria-label="테라러닝"><path d="M8 6 H58 V88 L33 71 L8 88 Z" fill="#E5202E"/><path d="M19 21 H47 M33 21 V57" stroke="#fff" stroke-width="9" stroke-linecap="square"/><path d="M94.08984375 33.7890625H83.1015625V40.755859375H92.333984375V47.609375H83.1015625V55.482421875Q86.4716796875 55.42578125 89.43115234375 55.18505859375Q92.390625 54.9443359375 95.67578125 54.462890625L96.412109375 61.712890625Q92.333984375 62.4208984375 88.4541015625 62.60498046875Q84.57421875 62.7890625 78.173828125 62.7890625H74.4921875V26.708984375H94.08984375ZM118.8984375 73.607421875H110.232421875V21.21484375H118.8984375ZM107.5703125 71.455078125H99.1875V47.04296875H94.486328125V39.90625H99.1875V21.951171875H107.5703125ZM165.1171875 40.359375H172.197265625V47.8359375H165.1171875V73.77734375H156.111328125V21.21484375H165.1171875ZM149.9375 46.58984375H134.53125V54.3779296875Q139.7138671875 54.3212890625 144.17431640625 53.99560546875Q148.634765625 53.669921875 153.109375 52.990234375L153.90234375 60.126953125Q148.4365234375 61.146484375 142.87158203125 61.5146484375Q137.306640625 61.8828125 130.056640625 61.8828125H125.525390625V39.56640625H140.875V32.599609375H125.46875V25.349609375H149.9375ZM218.01953125 73.77734375H208.95703125V46.703125H201.70703125V39.33984375H208.95703125V21.21484375H218.01953125ZM198.931640625 45.796875H184.26171875V54.3779296875Q189.359375 54.3212890625 193.6640625 54.0380859375Q197.96875 53.7548828125 202.2734375 53.046875L203.009765625 60.353515625Q197.6572265625 61.2314453125 192.19140625 61.52880859375Q186.7255859375 61.826171875 179.673828125 61.826171875H175.19921875V38.716796875H190.0390625V32.599609375H175.0859375V25.349609375H198.931640625ZM267.5234375 51.0078125H258.517578125V21.21484375H267.5234375ZM235.46484375 41.662109375Q245.716796875 41.37890625 255.232421875 39.509765625L256.1953125 46.703125Q245.1787109375 49.08203125 231.103515625 49.08203125H226.40234375V24.38671875H235.46484375ZM267.806640625 62.845703125Q267.806640625 66.1875 265.58349609375 68.63720703125Q263.3603515625 71.0869140625 259.23974609375 72.40380859375Q255.119140625 73.720703125 249.568359375 73.720703125Q244.017578125 73.720703125 239.86865234375 72.40380859375Q235.7197265625 71.0869140625 233.482421875 68.63720703125Q231.2451171875 66.1875 231.2734375 62.845703125Q231.2451171875 59.447265625 233.482421875 56.96923828125Q235.7197265625 54.4912109375 239.8544921875 53.17431640625Q243.9892578125 51.857421875 249.568359375 51.857421875Q255.119140625 51.857421875 259.23974609375 53.16015625Q263.3603515625 54.462890625 265.58349609375 56.94091796875Q267.806640625 59.4189453125 267.806640625 62.845703125ZM240.3359375 62.845703125Q240.3359375 64.7431640625 242.61572265625 65.66357421875Q244.8955078125 66.583984375 249.568359375 66.52734375Q254.212890625 66.5556640625 256.421875 65.66357421875Q258.630859375 64.771484375 258.6875 62.845703125Q258.6591796875 60.8349609375 256.478515625 59.97119140625Q254.2978515625 59.107421875 249.568359375 59.107421875Q244.810546875 59.107421875 242.5732421875 59.97119140625Q240.3359375 60.8349609375 240.3359375 62.845703125Z" fill="#111419"/></svg></a><a class="back" href="../">허브로</a></header>
+  <div>
+    <h1>희망 전공으로 찾는 2028 대입</h1>
+    <p class="lead">상위권 24개 대학 시행계획에서 학과·전형·모집인원을 뽑아 매주 갱신합니다.</p>
+  </div>
+  <div class="search"><label for="q" style="position:absolute;left:-9999px">희망 전공</label>
+    <input id="q" type="search" placeholder="예: 컴퓨터, 경영, 약학, 간호" autocomplete="off"></div>
+  <div class="row"><span class="label">계열로 고르기</span><div class="chips" id="fields" role="toolbar" aria-label="계열"></div></div>
+  <div class="row"><span class="label">대학</span><div class="chips small" id="groups" role="toolbar" aria-label="대학 묶음"></div></div>
+  <div class="row"><span class="label">전형</span><div class="chips small" id="types" role="toolbar" aria-label="전형 유형"></div></div>
+  <div class="sum" id="sum" aria-live="polite"></div>
+  <div id="list"></div>
+  <div class="soon"><span class="tag-soon">준비 중</span><b>내 성적으로 적정·상향 고르기</b>
+    <p>대학별 입시결과(내신 등급, 수능 백분위)를 연결하면 위 목록에 적정·상향·소신을 함께 표시합니다.</p></div>
+  <section class="row"><h2>수록 현황</h2><div class="status" id="status"></div></section>
+  <footer id="foot"><span>출처: 각 대학이 공표한 2028학년도 대학입학전형시행계획(정원내 모집인원). 모집요강에서 바뀔 수 있으니 지원 전 대학 모집요강을 확인하세요.</span><span>© 테라러닝</span></footer>
+</div>
+<script>
+(function () {
+  "use strict";
+  /* 계열 → 모집단위 이름에 들어가는 낱말. x는 걸러 낼 낱말(예: 의예에서 치의예 빼기). */
+  var 계열 = [
+    { n: "의예", k: ["의예", "의학과", "의과대학"], x: ["치의", "한의", "수의"] },
+    { n: "치의예", k: ["치의예", "치의학"] },
+    { n: "한의예", k: ["한의예", "한의학"] },
+    { n: "약학", k: ["약학", "약대", "제약"] },
+    { n: "수의예", k: ["수의예", "수의학"] },
+    { n: "간호", k: ["간호"] },
+    { n: "경영·경제", k: ["경영", "경제", "회계", "금융", "상경", "무역", "통상", "세무", "파이낸스", "경상"] },
+    { n: "컴퓨터·AI", k: ["컴퓨터", "소프트웨어", "인공지능", "AI", "데이터", "정보보호", "사이버", "SW", "컴퓨팅", "지능정보"] },
+    { n: "전기·전자·반도체", k: ["전기", "전자", "반도체", "통신", "디스플레이"] },
+    { n: "기계·항공·로봇", k: ["기계", "항공", "우주", "자동차", "모빌리티", "로봇", "조선", "메카"] },
+    { n: "화학·신소재·에너지", k: ["화학공학", "화공", "신소재", "재료", "고분자", "에너지", "배터리", "이차전지", "화학생물공학"] },
+    { n: "건축·토목·도시", k: ["건축", "토목", "건설", "도시", "조경", "부동산"] },
+    { n: "생명·바이오·식품", k: ["생명", "바이오", "생물", "유전", "식품", "미생물", "분자"] },
+    { n: "자연과학", k: ["수학", "물리", "화학과", "화학부", "지구", "천문", "통계", "대기", "해양"] },
+    { n: "법·행정·정치", k: ["법학", "법과", "행정", "정치", "외교", "공공", "경찰"] },
+    { n: "사회·미디어·심리", k: ["사회학", "심리", "미디어", "언론", "신문방송", "커뮤니케이션", "광고", "사회복지", "지리", "인류", "문헌정보", "아동"] },
+    { n: "인문·어문", k: ["국어국문", "국문", "영어", "영문", "중어", "중국", "일어", "일본", "불어", "프랑스", "독어", "독일", "노어", "러시아", "스페인", "서어", "사학", "역사", "철학", "언어", "문학", "한문", "고고", "인문"] },
+    { n: "교육", k: ["교육"] },
+    { n: "자유전공", k: ["자유전공", "자율전공", "무전공", "학부대학", "전공자율", "자유학부", "자율학부"] },
+    { n: "예체능", k: ["미술", "디자인", "음악", "체육", "무용", "연극", "영화", "조형", "회화", "조소", "공예", "성악", "작곡", "스포츠", "기악", "국악"] }
+  ];
+  var 줄임 = { "컴공": "컴퓨터", "의대": "의예", "약대": "약학", "치대": "치의", "한의대": "한의", "수의대": "수의", "경영학": "경영", "전전": "전기", "전자공": "전자", "기계공": "기계" };
+  var 묶음들 = ["전체", "서울", "지거국"];
+  var 유형들 = [["전체", null], ["교과", "학생부교과"], ["종합", "학생부종합"], ["논술", "논술"], ["정시", "수능"], ["실기", "실기/실적"]];
+  var 짧게 = { "학생부교과": "교과", "학생부종합": "종합", "논술": "논술", "실기/실적": "실기", "수능": "정시", "기타": "기타" };
+
+  var S = { q: "", f: "컴퓨터·AI", g: "전체", t: null };
+  try { var saved = JSON.parse(localStorage.getItem("ipsi.pick") || "null"); if (saved) S = Object.assign(S, saved); } catch (e) {}
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var nf = function (n) { return n.toLocaleString("ko-KR"); };
+  var flat = function (s) { return String(s || "").replace(/\s+/g, ""); };
+
+  var DB = null, 대학 = {}, 전형 = {};
+
+  function chips(el, list, cur, attr) {
+    el.innerHTML = list.map(function (x) {
+      var v = Array.isArray(x) ? x[0] : x;
+      return '<button type="button" data-' + attr + '="' + esc(v) + '" aria-pressed="' + (v === cur) + '">' + esc(v) + "</button>";
+    }).join("");
+  }
+
+  function matches(r) {
+    var hay = flat(r.단위) + "|" + flat(r.단과);
+    if (S.q) {
+      var q = flat(S.q);
+      Object.keys(줄임).forEach(function (k) { if (q.indexOf(k) !== -1) q = q.replace(k, 줄임[k]); });
+      if (hay.indexOf(q) === -1) return false;
+    } else if (S.f) {
+      var c = 계열.filter(function (c) { return c.n === S.f; })[0];
+      var name = flat(r.단위);
+      var hit = c.k.some(function (k) { return name.indexOf(k) !== -1; });
+      if (!hit) return false;
+      if (c.x && c.x.some(function (x) { return name.indexOf(x) !== -1; })) return false;
+    }
+    if (S.g !== "전체" && 대학[r.u].묶음 !== S.g) return false;
+    if (S.t) {
+      var any = Object.keys(r.인원).some(function (k) { return 전형[r.u][k] && 전형[r.u][k].유형 === S.t && r.인원[k] > 0; });
+      if (!any) return false;
+    }
+    return true;
+  }
+
+  function tagsOf(r) {
+    var agg = {}, order = [];
+    Object.keys(r.인원).forEach(function (k) {
+      var t = 전형[r.u][k]; if (!t) return;
+      var lab = t.시기 === "정시" ? (t.유형 === "수능" ? "정시" : "정시 " + 짧게[t.유형]) + (t.군 ? " " + t.군 + "군" : "") : 짧게[t.유형];
+      if (!(lab in agg)) { agg[lab] = 0; order.push(lab); }
+      agg[lab] += r.인원[k];
+    });
+    return order.map(function (lab) { return { lab: lab, n: agg[lab], jeong: lab.indexOf("정시") === 0 }; });
+  }
+
+  function draw() {
+    try { localStorage.setItem("ipsi.pick", JSON.stringify(S)); } catch (e) {}
+    chips($("fields"), 계열.map(function (c) { return c.n; }), S.q ? null : S.f, "f");
+    chips($("groups"), 묶음들, S.g, "g");
+    chips($("types"), 유형들, (유형들.filter(function (x) { return x[1] === S.t; })[0] || ["전체"])[0], "t");
+    if (!DB) return;
+    var rows = DB.모집단위.filter(matches);
+    var by = {}, 수시 = 0, 정시 = 0;
+    rows.forEach(function (r) {
+      (by[r.u] = by[r.u] || []).push(r);
+      Object.keys(r.인원).forEach(function (k) { var t = 전형[r.u][k]; if (t) { if (t.시기 === "정시") 정시 += r.인원[k]; else 수시 += r.인원[k]; } });
+    });
+    var unis = DB.대학.filter(function (u) { return by[u.id]; });
+    $("sum").innerHTML = rows.length
+      ? "<b>" + unis.length + "</b><span>개 대학</span><b>" + rows.length + "</b><span>개 모집단위</span><b>" + nf(수시) + "</b><span>명 수시</span><b>" + nf(정시) + "</b><span>명 정시</span>"
+      : "";
+    $("list").innerHTML = rows.length ? unis.map(function (u) {
+      var rs = by[u.id], n = rs.reduce(function (a, r) { return a + Object.keys(r.인원).reduce(function (b, k) { return b + r.인원[k]; }, 0); }, 0);
+      return '<section class="uni"><div class="uni-h"><b>' + esc(u.이름) + "</b><small>" + rs.length + "개 단위 · " + nf(n) + "명</small></div>" +
+        rs.map(function (r) {
+          var sum = Object.keys(r.인원).reduce(function (b, k) { return b + r.인원[k]; }, 0);
+          var tags = tagsOf(r).map(function (t) { return '<span class="t' + (t.jeong ? " jeong" : "") + '">' + esc(t.lab) + " " + t.n + "</span>"; }).join("");
+          if (r.검증 === "합계불일치") tags += '<span class="t chk" title="전형별 인원의 합이 PDF 표의 계와 다릅니다">PDF 계와 다름 · 확인 중</span>';
+          var det = Object.keys(r.인원).map(function (k) {
+            var t = 전형[r.u][k] || {};
+            return "<tr><td>" + esc((t.시기 || "") + " · " + (t.전형명 || k) + (t.군 ? " (" + t.군 + "군)" : "")) + '</td><td class="n">' + r.인원[k] + "</td></tr>";
+          }).join("");
+          var src = u.PDF ? '<a href="' + esc(u.PDF) + '" target="_blank" rel="noopener">시행계획 원문' + (r.쪽 ? " " + r.쪽 + "쪽" : "") + "</a>" : "";
+          return '<details class="u"><summary><div class="nm"><b>' + esc(r.단위) + "</b>" + (r.단과 && r.단과 !== r.단위 ? "<small>" + esc(r.단과) + "</small>" : "") +
+            '</div><span class="tot">' + nf(sum) + "명</span><div class=\"tags\">" + tags + "</div></summary>" +
+            '<div class="detail"><table>' + det + "</table><span class=\"src\">" + src + (r.계 != null ? " · PDF 표의 계 " + r.계 + "명" : "") + "</span></div></details>";
+        }).join("") + "</section>";
+    }).join("") : '<div class="empty">조건에 맞는 모집단위가 없습니다. 전공 이름을 짧게 넣거나 계열을 바꿔 보세요.</div>';
+  }
+
+  function drawStatus() {
+    $("status").innerHTML = "<table><thead><tr><th>대학</th><th>묶음</th><th style=\"text-align:right\">모집단위</th><th style=\"text-align:right\">계 일치</th><th>받은 날</th><th>원문</th></tr></thead><tbody>" +
+      DB.대학.map(function (u) {
+        var ok = u.행수 ? u.합계일치 + "/" + u.행수 : "—";
+        return "<tr><td>" + esc(u.이름) + "</td><td>" + esc(u.묶음) + '</td><td class="n">' + (u.행수 || "정리 중") + '</td><td class="n">' + ok +
+          "</td><td>" + esc((u.받은때 || "").slice(0, 10)) + "</td><td>" + (u.PDF ? '<a href="' + esc(u.PDF) + '" target="_blank" rel="noopener">PDF</a>' : "") + "</td></tr>";
+      }).join("") + "</tbody></table>";
+    var f = $("foot").firstElementChild;
+    f.textContent = f.textContent + " 마지막 갱신: " + (DB.만든때 || "").slice(0, 10) + ".";
+  }
+
+  $("app").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-f],button[data-g],button[data-t]"); if (!b) return;
+    if (b.dataset.f) { S.f = b.dataset.f; S.q = ""; $("q").value = ""; }
+    if (b.dataset.g) S.g = b.dataset.g;
+    if (b.dataset.t) S.t = (유형들.filter(function (x) { return x[0] === b.dataset.t; })[0] || [0, null])[1];
+    draw();
+  });
+  $("q").value = S.q || "";
+  $("q").addEventListener("input", function (e) { S.q = e.target.value.trim(); draw(); });
+
+  draw();
+  $("list").innerHTML = '<div class="empty">모집단위 자료를 불러오는 중입니다.</div>';
+  fetch("data/2028.json", { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
+    DB = d;
+    d.대학.forEach(function (u) { 대학[u.id] = u; 전형[u.id] = {}; (u.전형 || []).forEach(function (t) { 전형[u.id][t.key] = t; }); });
+    drawStatus(); draw();
+  }).catch(function () {
+    $("list").innerHTML = '<div class="empty">자료를 불러오지 못했습니다. 잠시 뒤 새로고침해 주세요.</div>';
+  });
+})();
+</script>
+</body>
+</html>
