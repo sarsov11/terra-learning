@@ -111,7 +111,13 @@ def main(pdf_path, out_path):
     pdf_total = None
     ipak_check = []  # (이름, 입학정원, 정원내합)
 
+    stated_in = None
     with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            m = re.search(r"정원\s*내\s*([\d,]+)\s*명", page.extract_text() or "")
+            if m:
+                stated_in = (int(m.group(1).replace(",", "")), page.page_number)
+                break
         for pno, page in enumerate(pdf.pages, start=1):
             rows = find_table(page)
             if rows is None:
@@ -181,6 +187,8 @@ def main(pdf_path, out_path):
                if pdf_total[k] != sum(u["인원"].get(k, 0) for u in units)]
         memo.append("전형별 열 합 대조: " + ("모두 일치" if not bad else "불일치 " + ", ".join(bad)))
         memo.append(f"참고: PDF '계' 행 입학정원 {pdf_total['입학정원']} (모집인원에는 2026 미충원 이월 포함)")
+        if stated_in:
+            memo.append(f"총계 대조(본문): p{stated_in[1]} '정원 내 {stated_in[0]:,}명' = 정리 데이터 합 {s_me + j_me}")
 
     diff = [f"{n}(입학정원 {a}, 정원내합 {b})" for n, a, b in ipak_check if a != b]
     memo.append(f"참고 대조(입학정원 칸 vs 행 정원내 합): {len(ipak_check) - len(diff)}행 같음"

@@ -137,8 +137,7 @@ def main(pdf_path, out_path):
             v = [e for e in inner_v if e["top"] <= (top + bottom) / 2 <= e["bottom"]]
             if v:
                 vx = v[0]["x0"]
-                sub = "".join(w["text"] for w in words_in(words, tx0, vx - 0.5, top, bottom) if w["x0"] >= vx) or \
-                      "".join(w["text"] for w in words_in(words, vx, name_x1, top, bottom))
+                sub = "".join(w["text"] for w in words_in(words, vx, name_x1, top, bottom))
                 gtop = max([h for h in full_h if h <= top + 1], default=top)
                 gbot = min([h for h in full_h if h >= bottom - 1], default=bottom)
                 grp = "".join(w["text"] for w in words_in(words, tx0, vx, gtop, gbot))
