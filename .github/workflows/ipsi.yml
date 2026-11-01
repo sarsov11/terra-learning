@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-kor
-      - run: pip install pdfplumber==0.11.4 requests==2.32.3
+      - run: pip install pdfplumber==0.11.10 pdfminer.six==20260107 pypdfium2==5.13.0 pillow==12.3.0 requests==2.32.3
       - name: PDF 받기·표 뽑기
         run: python tools/ipsi/fetch_extract.py "$RUNNER_TEMP/ipsi-pdf"
       - name: 정리·검증
