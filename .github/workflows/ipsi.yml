@@ -21,6 +21,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-kor
       - run: pip install pdfplumber==0.11.4 requests==2.32.3
       - name: PDF 받기·표 뽑기
         run: python tools/ipsi/fetch_extract.py "$RUNNER_TEMP/ipsi-pdf"

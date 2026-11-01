@@ -17,6 +17,7 @@ usage: python3 -I tools/ipsi/parsers/khu.py <pdf> <out.json>
 """
 import difflib
 import io
+import unicodedata
 import json
 import re
 import shutil
@@ -205,33 +206,49 @@ def squash(s):
     return re.sub(r"[\s　]", "", s or "")
 
 
-def label_candidates(rd, objs):
-    """칸 글자의 OCR 후보 문자열들."""
+def label_candidates(rd, box, objs):
+    """칸 글자의 OCR 후보 문자열들(해상도·분할 방식을 바꿔 가며)."""
     lines = text_lines(objs)
     cands = set()
-    for lang in ("kor", "kor+eng"):
-        parts = []
-        for L in lines:
-            t = rd.ocr(bbox_of(L["o"]), LAB_DPI, lang, 7)
-            if not t and len(clusters(L["o"])) == 1:
-                t = rd.ocr(bbox_of(L["o"]), LAB_DPI, lang, 10)
-            parts.append(t)
+    for dpi in (300, 400, 500):
+        cands.add(squash(rd.ocr(box, dpi, "kor", 6)))
+        parts = [rd.ocr(bbox_of(L["o"]), dpi, "kor", 7) for L in lines]
         cands.add(squash("".join(parts)))
-    cands.add(squash(rd.ocr(bbox_of(objs, 3), LAB_DPI, "kor", 6)))
+    cands.add(squash(rd.ocr(box, LAB_DPI, "kor+eng", 6)))
     return [c for c in cands if c]
 
 
-def match_name(cands, vocab):
-    """후보 중 목록과 가장 가까운 이름. (이름, 점수, 차점) — 점수 0.6 미만이거나 차점과 0.08 이내면 None."""
-    best = {}
-    for v in vocab:
-        vs = squash(v)
-        best[v] = max((difflib.SequenceMatcher(None, c, vs).ratio() for c in cands), default=0)
-    ranked = sorted(best.items(), key=lambda kv: -kv[1])
-    (n1, s1), (n2, s2) = ranked[0], ranked[1] if len(ranked) > 1 else (None, 0)
-    if s1 < 0.6 or s1 - s2 < 0.08:
-        return None, s1, n2
-    return n1, s1, n2
+def jamo(s):
+    return unicodedata.normalize("NFD", s)
+
+
+def scores(cands, vocab):
+    cj = [jamo(c) for c in cands]
+    return {v: max((difflib.SequenceMatcher(None, c, jamo(squash(v))).ratio() for c in cj), default=0.0) for v in vocab}
+
+
+def best_name(cands, vocab, floor=0.5, margin=0.08):
+    sc = sorted(scores(cands, vocab).items(), key=lambda kv: -kv[1])
+    (n1, s1), (n2, s2) = sc[0], sc[1] if len(sc) > 1 else (None, 0.0)
+    if s1 < floor or s1 - s2 < margin:
+        return None, s1
+    return n1, s1
+
+
+def assign_unique(items, vocab, floor=0.45):
+    """각 칸(items: id -> 후보들)에 목록 이름을 하나씩, 서로 겹치지 않게 점수 높은 순으로 붙인다."""
+    pairs = []
+    for i, cands in items.items():
+        for v, s in scores(cands, vocab).items():
+            pairs.append((s, i, v))
+    pairs.sort(key=lambda t: -t[0])
+    got, used = {}, set()
+    for s, i, v in pairs:
+        if i in got or v in used or s < floor:
+            continue
+        got[i] = (v, s)
+        used.add(v)
+    return got
 
 
 def is_dash_or_dot(objs):
@@ -303,16 +320,11 @@ def main(pdf_path, out_path):
                 return cache[key]
             o = objs_in(gobjs, xa, a, xb, b)
             if not o:
-                res = ("빈칸", a <= hdr_bottom + 1)
+                res = ("빈칸", a <= hdr_bottom + 1, (pno,) + key)
             elif is_dash_or_dot(o):
-                res = ("없음", None)
+                res = ("없음", None, (pno,) + key)
             else:
-                cands = label_candidates(rd, o)
-                name, score, second = match_name(cands, NAMES[kind])
-                if name is None:
-                    res = ("미확정", cands)
-                else:
-                    res = ("이름", name)
+                res = ("후보", label_candidates(rd, (xa + 1.5, a + 1.5, xb - 1.5, b - 1.5), o), (pno,) + key)
             cache[key] = res
             return res
 
@@ -354,43 +366,58 @@ def main(pdf_path, out_path):
                 rec["모집단위"] = "총합계"
                 total_row = rec
                 continue
-            for kind, k in (("계열", 0), ("단과대학", 1)):
-                st, v = cell_text(kind, k, y0, y1)
-                if st == "이름":
-                    rec[kind] = v
-                elif st == "없음":
-                    rec[kind] = None
-                elif st == "빈칸" and v and prev[kind]:
-                    rec[kind] = prev[kind]
-                    carried.append(f"{pno}쪽 {kind} '{prev[kind]}'")
-                elif st == "빈칸":
-                    rec[kind] = None
-                else:
-                    rec[kind] = None
-                    name_issues.append(f"{pno}쪽 {kind} 칸 이름 미확정(OCR {v})")
-                prev[kind] = rec[kind]
+            lab = {"계열": cell_text("계열", 0, y0, y1), "단과대학": cell_text("단과대학", 1, y0, y1)}
             if split:
                 sx = split[0]
-                st, v = cell_text("묶음", 2, y0, y1, LABEL_X[2], sx)
-                if st == "이름":
-                    rec["묶음"] = v
-                elif st == "빈칸" and v and prev["묶음"]:
-                    rec["묶음"] = prev["묶음"]
-                    carried.append(f"{pno}쪽 묶음 '{prev['묶음']}'")
-                else:
-                    rec["묶음"] = None
-                    name_issues.append(f"{pno}쪽 묶음 칸 이름 미확정")
-                prev["묶음"] = rec["묶음"]
-                st, v = cell_text("세부", 2, y0, y1, sx, LABEL_X[3])
+                lab["묶음"] = cell_text("묶음", 2, y0, y1, LABEL_X[2], sx)
+                lab["세부"] = cell_text("세부", 2, y0, y1, sx, LABEL_X[3])
             else:
-                rec["묶음"] = None
-                st, v = cell_text("모집단위", 2, y0, y1)
-            if st != "이름":
-                name_issues.append(f"{pno}쪽 y={y0:.0f} 모집단위 이름 미확정(OCR {v})")
-                rec["모집단위"] = None
-            else:
-                rec["모집단위"] = v
+                lab["모집단위"] = cell_text("모집단위", 2, y0, y1)
+            rec["lab"] = lab
             rows.append(rec)
+
+    # ---------------------------------------------------------- 이름 정하기
+    # 모집단위·세부: 표 전체에서 목록 이름을 서로 겹치지 않게 하나씩 붙인다.
+    name_log = []
+    for kind in ("모집단위", "세부"):
+        items = {i: r["lab"][kind][1] for i, r in enumerate(rows) if kind in r["lab"] and r["lab"][kind][0] == "후보"}
+        got = assign_unique(items, NAMES[kind])
+        for i, r in enumerate(rows):
+            if kind not in r["lab"]:
+                continue
+            if i in got:
+                r[kind] = got[i][0]
+                name_log.append((got[i][1], r["쪽"], kind, got[i][0], items[i]))
+            else:
+                r[kind] = None
+                name_issues.append(f"{r['쪽']}쪽 {kind} 이름 미확정(OCR {items.get(i)})")
+    # 계열·단과대학·묶음: 병합 칸마다 목록에서 가장 가까운 이름. 쪽 첫머리 빈 칸은 앞 행 값을 잇는다.
+    resolved = {}
+    for r in rows:
+        for kind in ("계열", "단과대학", "묶음"):
+            if kind not in r["lab"]:
+                if kind == "묶음":
+                    r["묶음"] = None
+                continue
+            st, v, ck = r["lab"][kind]
+            if st == "후보":
+                if ck not in resolved:
+                    nm, sc = best_name(v, NAMES[kind], floor=0.4, margin=0.05)
+                    resolved[ck] = nm
+                    if nm is None:
+                        name_issues.append(f"{r['쪽']}쪽 {kind} 칸 이름 미확정(OCR {v})")
+                    else:
+                        name_log.append((sc, r["쪽"], kind, nm, v))
+                r[kind] = resolved[ck]
+            elif st == "빈칸" and v and prev[kind]:
+                r[kind] = prev[kind]
+                carried.append(f"{r['쪽']}쪽 {kind} '{prev[kind]}'")
+            else:
+                r[kind] = None
+            prev[kind] = r[kind]
+        if "세부" in r["lab"]:
+            r["모집단위"] = r.get("세부")
+    low = sorted(name_log, key=lambda t: t[0])[:8]
 
     # ---------------------------------------------------------- 글리프 서명 대조
     sig_map, sig_conflict = {}, []
@@ -429,6 +456,8 @@ def main(pdf_path, out_path):
     dup = [k for k, n in seen.items() if n > 1]
     plain_used = {r["모집단위"] for r in rows if r["모집단위"] and not r["묶음"]}
     missing = [n for n in NAMES["모집단위"] if n not in plain_used]
+    sub_used = {r["모집단위"] for r in rows if r["모집단위"] and r["묶음"]}
+    missing += [n for n in NAMES["세부"] if n not in sub_used]
 
     # ---------------------------------------------------------- 출력
     units, excluded, unread = [], [], []
@@ -456,16 +485,32 @@ def main(pdf_path, out_path):
         units.append({"단과대학": r["단과대학"], "모집단위": dept, "계열": r["계열"], "인원": inwon,
                       "계": None, "쪽": r["쪽"], "검증": "합계칸없음"})
 
-    # 2쪽 정원내 총계 문장 OCR
-    tot, tot_page = None, None
+    # 정원내 총계 문장('[정원 내] 수시 n명 : 정시 n명') — 줄 단위로 잘라 해상도 3가지로 읽고 2번 이상 같을 때만 채택
+    tot, tot_page, tot_reads = None, None, []
+    pat = re.compile(r"정\s*원\s*[내네](?!\s*외)\s*\]?\s*수\s*시\s*(\d[.,]?\d{3})\s*명.{0,40}?정\s*시\s*(\d[.,]?\d{3})\s*명")
     for i, p in enumerate(pdf.pages[:8], 1):
         if p.width > p.height:
             continue
-        t = Renders(p).ocr((0, 0, p.width, p.height), LAB_DPI, "kor", 6, border=0)
-        m = re.search(r"정\s*원\s*[내네]\s*\S?\s*수\s*시\s*(\d{1,2}[.,]?\d{3})\s*명.{0,40}?정\s*시\s*(\d{1,2}[.,]?\d{3})\s*명", t)
-        if m:
-            tot = tuple(int(re.sub(r"[.,]", "", g)) for g in m.groups())
-            tot_page = i
+        rd = Renders(p)
+        for L in text_lines(glyph_objs(p)):
+            bx = bbox_of(L["o"])
+            if bx[2] - bx[0] < 150:
+                continue
+            first = rd.ocr(bx, LAB_DPI, "kor", 7)
+            if not ("수시" in first and "정시" in first and "정원" in first and "외" not in first):
+                continue
+            reads = []
+            for dpi in (300, 400, 500):
+                m = pat.search(rd.ocr(bx, dpi, "kor", 7))
+                if m:
+                    reads.append(tuple(int(re.sub(r"[.,]", "", g)) for g in m.groups()))
+            tot_reads = reads
+            if reads:
+                (val, n), = Counter(reads).most_common(1)
+                if n >= 2:
+                    tot, tot_page = val, i
+            break
+        if tot_reads:
             break
 
     su = sum(v for u in units for k, v in u["인원"].items() if k.startswith("수시_"))
@@ -491,7 +536,7 @@ def main(pdf_path, out_path):
                     + ("" if ok else f" (불일치; 표 총합계행 수시 {tsu}, 정시 {tjo})")
                     + f" (출처 {tot_page}쪽 '[정원 내] 수시 n명 : 정시 n명' OCR, 표 총합계행과도 일치)" * ok)
     else:
-        memo.append(f"총계 대조: {tot_page or '?'}쪽 정원내 총계 문장을 OCR로 찾지 못함 (파싱 합 수시 {su}, 정시 {jo}; "
+        memo.append(f"총계 대조: 정원내 총계 문장을 OCR로 확정하지 못함(읽은 값 {tot_reads}) (파싱 합 수시 {su}, 정시 {jo}; "
                     f"표 총합계행 수시 {tsu}, 정시 {tjo})")
     memo.append("이름 목록 대응: " + ("모집단위 목록 전부 한 번씩 대응" if not (dup or missing) else
                                   f"중복 {dup}, 표에서 못 찾음 {missing}"))
@@ -501,6 +546,8 @@ def main(pdf_path, out_path):
         memo.append("숫자가 아닌 표시(**** 등, 수시 미충원 시에만 선발)는 0으로 봄: " + ", ".join(marks))
     if excluded:
         memo.append("정원내 인원이 없어 뺀 행(정원외 전담 모집단위): " + ", ".join(excluded))
+    memo.append("이름 대응 점수 낮은 순 5개(점수, 쪽, 종류, 정한 이름, OCR 후보 1개): " + "; ".join(
+        f"{sc:.2f} {pg}쪽 {k} {nm} ← {sorted(c, key=len)[0] if c else ''}" for sc, pg, k, nm, c in low[:5]))
     if name_issues:
         memo.append("이름 확인 필요: " + "; ".join(name_issues))
     if unread:
