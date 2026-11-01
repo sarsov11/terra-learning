@@ -33,11 +33,21 @@ jobs:
           name: ipsi-pdf
           path: ${{ runner.temp }}/ipsi-pdf
           retention-days: 7
+      - name: PDF 원본을 ipsi-pdf 가지에 보관
+        run: |
+          ls -la "$RUNNER_TEMP/ipsi-pdf"
+          rm -rf "$RUNNER_TEMP/pdfbranch" && mkdir "$RUNNER_TEMP/pdfbranch" && cd "$RUNNER_TEMP/pdfbranch"
+          git init -q -b ipsi-pdf
+          cp "$RUNNER_TEMP"/ipsi-pdf/*.pdf .
+          git add .
+          git -c user.name="teralearning-bot" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "2028 시행계획 PDF 원본 $(TZ=Asia/Seoul date +%F)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ipsi-pdf
       - name: 바뀐 것만 커밋
         run: |
           git config user.name "teralearning-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tools/ipsi/raw ipsi/data 2>/dev/null || true
+          git add tools/ipsi/raw
+          if [ -d ipsi/data ]; then git add ipsi/data; fi
           if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
           git commit -m "입시 데이터 갱신 $(TZ=Asia/Seoul date +%F)"
           git push
