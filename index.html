@@ -85,7 +85,7 @@ const LOGOS = {"1": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 301
 const LOGO = LOGOS[new URLSearchParams(location.search).get('logo')] || LOGOS['7'];
 const head = `<header><a class="logo" href="./" aria-label="테라러닝">${LOGO}</a></header>`;
 const bar = SIAN ? `<nav class="sian" aria-label="시안">${[['a','A 분야 칩'],['b','B 나는 누구'],['c','C 검색']].map(([k,l])=>`<a href="#${k}" aria-current="${k===V}">${l}</a>`).join('')}</nav>` : '';
-const foot = bar + `<footer>© 테라러닝 · 기출 문항은 시행기관이 공개한 자료에서 가져오고 출처를 적어요.</footer>`;
+const foot = bar + `<footer>© 테라러닝 · 기출 문항은 시행기관이 공개한 자료에서 가져오고 출처를 적어요.<br><a href="legal/terms.html">이용약관</a> · <a href="legal/privacy.html"><b>개인정보 처리방침</b></a> · <a href="legal/refund.html">환불 규정</a> · <a href="legal/business-info.html">사업자 정보</a></footer>`;
 
 function viewA(){
   let pick = FIELDS[0].id;
