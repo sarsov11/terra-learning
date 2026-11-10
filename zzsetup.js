@@ -2,7 +2,7 @@
  *  대표님: 「서비스에 들어왔는데 학생 조사 없이 바로 과목 설명부터 갈기는 거 싫다. 마이메르시 첫 화면처럼 사용자 세팅 이후 과목 전략」
  *          「KB국민은행 앱처럼 하나 쓰고 나면 그게 위로 밀리면서 가운데서 새로운 걸 묻고, 또 한 칸 위로 밀리면서 계속 가운데서 묻는 방식」
  *
- *  화면: 검은 바탕(남색 검정 #070B14) + 흰 글씨 + 포인트 한 색. 질문은 늘 화면 가운데. 답하면 「질문 · 답」 한 줄이 위로 밀려 쌓이고
+ *  화면: 흰 바탕 + 연회색 판 + 진한 글씨 + 포인트 한 색(1110 밝은 화면으로 바꿈). 질문은 늘 화면 가운데. 답하면 「질문 · 답」 한 줄이 위로 밀려 쌓이고
  *        새 질문이 가운데에 올라온다. 위에 쌓인 답을 누르면 그 질문으로 돌아가 고칠 수 있다. 답할 때마다 손에 짧은 진동.
  *
  *  ZZSETUP.run("ncs", {
@@ -22,7 +22,15 @@
   if (window.ZZSETUP) return;
   var D = document, W = window, KEY = "terra.setup.";
   var RM = false; try { RM = W.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { }
-  var POINTS = { sky: "#4FC3E8", lime: "#C8F25A", amber: "#FFB547", coral: "#FF6B5E" };
+  var POINTS = { sky: "#0E7490", lime: "#4D7C0F", amber: "#B45309", coral: "#E5322D" };
+  /* 흰 바탕에서 읽히도록 밝은 포인트색은 어둡게 눌러 준다(밝기 0.28 이하) */
+  function deep(c) {
+    var m = /^#([0-9a-f]{6})$/i.exec(String(c)); if (!m) return c;
+    var n = parseInt(m[1], 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;
+    function L(r, g, b) { return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255; }
+    for (var i = 0; i < 20 && L(r, g, b) > 0.28; i++) { r = Math.round(r * .9); g = Math.round(g * .9); b = Math.round(b * .9); }
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function get(k) { try { var v = JSON.parse(localStorage.getItem(KEY + k) || "null"); return v && v.ans ? v.ans : null; } catch (e) { return null; } }
@@ -48,20 +56,20 @@
 
   var css = [
     ":host{all:initial}",
-    "#zsu{--bg:#070B14;--card:#0F1522;--line:#1E2738;--tx:#F4F6FA;--sub:#8B93A7;--dim:#4A5368;--ink:#04121A;",
-    " position:fixed;inset:0;z-index:2147481800;color:var(--tx);background:radial-gradient(120% 70% at 50% 46%,#0E1626 0,#070B14 70%);",
+    "#zsu{--bg:#FFFFFF;--card:#F6F7F9;--line:#E6E8EC;--tx:#111419;--sub:#4B5563;--dim:#5F6670;--ink:#FFFFFF;",
+    " position:fixed;inset:0;z-index:2147481800;color:var(--tx);background:#FFFFFF;",
     " font:500 16px/1.6 var(--zf);letter-spacing:-.01em;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent;animation:uIn .35s ease-out}",
     "@keyframes uIn{0%{opacity:0}100%{opacity:1}}",
     "#zsu *{box-sizing:border-box}",
     "#zsu .tp{display:flex;align-items:center;gap:12px;padding:max(14px,env(safe-area-inset-top)) 20px 0}",
     "#zsu .nm{font:700 13px/1.3 var(--zf);color:var(--sub)}",
-    "#zsu .pg{flex:1;height:3px;border-radius:3px;background:#1A2232;overflow:hidden}#zsu .pg i{display:block;height:100%;width:0;background:var(--pt);transition:width .4s}",
+    "#zsu .pg{flex:1;height:3px;border-radius:3px;background:#EFF1F4;overflow:hidden}#zsu .pg i{display:block;height:100%;width:0;background:var(--pt);transition:width .4s}",
     "#zsu .stage{flex:1;display:flex;flex-direction:column;min-height:0;padding:0 22px;max-width:560px;width:100%;margin:0 auto}",
     /* 위로 밀려 쌓이는 답. 위쪽은 서서히 사라진다 */
     "#zsu .hist{flex:1 1 0;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;padding-bottom:18px;",
     " -webkit-mask-image:linear-gradient(transparent 0,#000 46%);mask-image:linear-gradient(transparent 0,#000 46%)}",
-    "#zsu .h{display:flex;align-items:baseline;gap:10px;padding:9px 0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;width:100%;opacity:.55;transition:opacity .2s}",
-    "#zsu .h:last-child{opacity:.9}#zsu .h:hover{opacity:1}",
+    "#zsu .h{display:flex;align-items:baseline;gap:10px;padding:9px 0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;width:100%;opacity:.8;transition:opacity .2s}",
+    "#zsu .h:last-child{opacity:1}#zsu .h:hover{opacity:1}",
     "#zsu .h span{flex:none;font:700 13px/1.3 var(--zf);color:var(--sub);min-width:4.5em}",
     "#zsu .h b{font:800 18px/1.35 var(--zf);color:var(--tx);word-break:keep-all}",
     "#zsu .h i{margin-left:auto;font:700 12px/1 var(--zf);color:var(--dim);font-style:normal;flex:none}",
@@ -70,17 +78,17 @@
     "#zsu .q{margin:0;font:800 clamp(23px,6.2vw,28px)/1.42 var(--zf);letter-spacing:-.03em;word-break:keep-all}",
     "#zsu .q b{color:var(--pt)}",
     "#zsu .qs{margin:8px 0 0;font:600 14px/1.5 var(--zf);color:var(--sub);word-break:keep-all}",
-    "#zsu .ops{display:grid;gap:8px;margin-top:20px;overflow-y:auto;max-height:46vh;padding:2px;-webkit-overflow-scrolling:touch}",
+    "#zsu .ops{display:grid;gap:10px;margin-top:20px;overflow-y:auto;max-height:46vh;padding:2px 2px 6px;-webkit-overflow-scrolling:touch}",
     "#zsu .ops.c2{grid-template-columns:1fr 1fr}",
-    "#zsu .op{display:block;width:100%;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;color:var(--tx);font:inherit;transition:border-color .15s,background .15s,transform .1s}",
+    "#zsu .op{display:block;width:100%;text-align:left;background:var(--card);border:0;border-radius:18px;padding:14px 16px;cursor:pointer;color:var(--tx);font:inherit;box-shadow:0 1px 2px rgba(17,20,25,.05),0 0 0 1px #E6E8EC;transition:box-shadow .15s,background .15s,transform .1s}",
     "#zsu .op:active{transform:scale(.985)}",
     "#zsu .op b{display:block;font:800 16.5px/1.3 var(--zf);word-break:keep-all}#zsu .op small{display:block;font:600 13px/1.45 var(--zf);color:var(--sub);margin-top:3px;word-break:keep-all}",
-    "#zsu .op.on{border-color:var(--pt);background:color-mix(in srgb,var(--pt) 12%,var(--card))}",
-    "#zsu .op.soon{opacity:.5;cursor:default}#zsu .op.soon small::after{content:' · 준비 중'}",
+    "#zsu .op.on{box-shadow:0 0 0 1.5px var(--pt);background:color-mix(in srgb,var(--pt) 9%,#FFFFFF)}",
+    "#zsu .op.soon{opacity:.6;cursor:default}#zsu .op.soon small::after{content:' · 준비 중'}",
     "#zsu .tx{display:flex;gap:8px;margin-top:20px}",
-    "#zsu .tx input{flex:1;min-width:0;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;color:var(--tx);font:700 17px/1.2 var(--zf);outline:none}",
-    "#zsu .tx input:focus{border-color:var(--pt)}",
-    "#zsu .go{background:var(--pt);color:var(--ink);border:0;border-radius:14px;padding:0 18px;font:800 15px/1 var(--zf);cursor:pointer;white-space:nowrap}",
+    "#zsu .tx input{flex:1;min-width:0;background:#fff;border:0;box-shadow:inset 0 0 0 1.5px #D3D7DD;border-radius:14px;padding:14px 16px;color:var(--tx);font:700 17px/1.2 var(--zf);outline:none}",
+    "#zsu .tx input:focus{box-shadow:inset 0 0 0 1.5px var(--pt)}",
+    "#zsu .go{background:var(--pt);color:var(--ink);border:0;border-radius:16px;padding:0 20px;font:800 16px/1 var(--zf);cursor:pointer;white-space:nowrap}",
     "#zsu .later{align-self:flex-start;margin-top:14px;background:none;border:0;color:var(--sub);font:700 13.5px/1 var(--zf);padding:8px 0;cursor:pointer}",
     "#zsu .cur.in .q,#zsu .cur.in .qs{animation:qIn .45s cubic-bezier(.2,.8,.2,1) both}",
     "#zsu .cur.in .ops,#zsu .cur.in .tx,#zsu .cur.in .later{animation:qIn .45s .08s cubic-bezier(.2,.8,.2,1) both}",
@@ -94,7 +102,7 @@
   function appFont() { try { var f = getComputedStyle(D.body).fontFamily; return f && f !== "initial" ? f : ""; } catch (e) { return ""; } }
   function point(cfg) {
     var q = ""; try { q = (location.search.match(/[?&]zsc=([a-z]+)/) || [])[1] || ""; } catch (e) { }
-    var p = cfg.포인트색 || W.ZZSTRAT_POINT || q || "sky"; return POINTS[p] || p;
+    var p = cfg.포인트색 || W.ZZSTRAT_POINT || q || "sky"; return deep(POINTS[p] || p);
   }
 
   /* 공통 질문 — 전략 데이터(d)가 있으면 목표 고르기까지. 앱이 자기 질문 앞에 붙여 쓴다 */
@@ -104,8 +112,8 @@
         { v: "new", label: "처음이에요" }, { v: "some", label: "조금 해 봤어요", sub: "강의나 기출을 일부 봤어요" }, { v: "retry", label: "시험을 본 적 있어요", sub: "점수를 알고 있어요" }] },
       { id: "when", k: "시험", q: "언제 시험을 볼 생각이에요?", options: [
         { v: "next", label: "다음 시험" }, { v: "after", label: "그다음 시험" }, { v: "unk", label: "아직 몰라요" }] },
-      { id: "time", k: "하루", q: "하루에 얼마나 낼 수 있어요?", options: [
-        { v: "1", label: "1시간 안쪽" }, { v: "3", label: "1~3시간" }, { v: "5", label: "3시간 넘게" }], cols: 1 }
+      { id: "time", k: "하루", q: "하루에 얼마나 낼 수 있어요?", options: (W.ZZSTRAT_TIMES && W.ZZSTRAT_TIMES.length ? W.ZZSTRAT_TIMES : [
+        { v: "1", label: "1시간 안쪽" }, { v: "3", label: "1~3시간" }, { v: "5", label: "3시간 넘게" }]), cols: W.ZZSTRAT_TIMES ? 2 : 1 }
     ];
     if (d && d.선택 && d.선택.length) out.push({
       id: "goal", k: "목표", q: "어디까지 노릴까요?", sub: "나중에 합격전략에서 바꿀 수 있어요.",
