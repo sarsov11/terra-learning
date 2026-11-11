@@ -5,22 +5,22 @@
  * 모양 안: <html data-look="a|b|c">  a 옅은 색 머리판(기본) · b 브랜드 색 머리판 · c 종이
  */
 :root {
-  --t-red: #E5202E; --t-red-2: #C8101D;
-  --t-app: #E5202E; --t-app-2: #C8101D;
+  --t-red: #0F766E; --t-red-2: #0B5F59;
+  --t-app: #0F766E; --t-app-2: #0B5F59;
   --t-app-soft: color-mix(in srgb, var(--t-app) 9%, #fff);
   --t-app-soft-2: color-mix(in srgb, var(--t-app) 16%, #fff);
   --t-app-line: color-mix(in srgb, var(--t-app) 28%, #fff);
-  --t-app-ink: color-mix(in srgb, var(--t-app) 78%, #111419);
-  --t-ok: #16B364; --t-no: #E5322D; --t-warn: #F59E0B;
+  --t-app-ink: #0B4F4A;
+  --t-ok: #16B364; --t-no: #E5322D; --t-warn: #0F766E;
   --t-bg: #FFFFFF; --t-bg-2: #F7F8FA;
   --t-surface: #FFFFFF; --t-surface-2: #F6F7F9; --t-surface-3: #EFF1F4;
-  --t-line: #E6E8EC; --t-line-2: #D3D7DD;
-  --t-ink: #111419; --t-ink-2: #333941; --t-ink-3: #4B5563; --t-ink-4: #5F6670;
+  --t-line: #DCE7E5; --t-line-2: #D3D7DD;
+  --t-ink: #12302D; --t-ink-2: #333941; --t-ink-3: #4B5563; --t-ink-4: #5F6670;
   --t-font: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
   --t-r-sm: 10px; --t-r-md: 14px; --t-r-lg: 18px; --t-r-xl: 24px; --t-r-2xl: 32px;
-  --t-sh-1: 0 1px 2px rgba(17,20,25,.05), 0 0 0 1px var(--t-line);
-  --t-sh-2: 0 10px 28px -14px rgba(17,20,25,.20), 0 0 0 1px var(--t-line);
-  --t-sh-3: 0 26px 60px -28px rgba(17,20,25,.34), 0 0 0 1px var(--t-line);
+  --t-sh-1: 0 1px 2px rgba(18,48,45,.05), 0 0 0 1px var(--t-line);
+  --t-sh-2: 0 10px 28px -14px rgba(18,48,45,.20), 0 0 0 1px var(--t-line);
+  --t-sh-3: 0 26px 60px -28px rgba(18,48,45,.34), 0 0 0 1px var(--t-line);
   --t-sh-app: 0 14px 30px -14px color-mix(in srgb, var(--t-app) 60%, transparent);
   --t-ease: cubic-bezier(.2,.8,.2,1);
   --t-wrap: 1120px; --t-head-h: 60px; --t-tab-h: 62px;
@@ -208,9 +208,9 @@ a.t-exam:hover .go { background: var(--t-app); color: #fff; }
 .t-door:hover::before { transform: scale(1.25); }
 .t-door > * { position: relative; }
 .t-door .t-mark { background: var(--c); }
-.t-door .who { position: absolute; right: 20px; top: 24px; font: 700 12.5px/1 var(--t-font); color: color-mix(in srgb, var(--c) 78%, #111419); }
+.t-door .who { position: absolute; right: 20px; top: 24px; font: 700 12.5px/1 var(--t-font); color: color-mix(in srgb, var(--c) 78%, #12302D); }
 .t-door h3 { font: 900 23px/1.2 var(--t-font); letter-spacing: -.04em; margin: 16px 0 6px; }
-.t-door h3 i { font-style: normal; color: color-mix(in srgb, var(--c) 78%, #111419); }
+.t-door h3 i { font-style: normal; color: color-mix(in srgb, var(--c) 78%, #12302D); }
 .t-door p { font: 500 14.5px/1.5 var(--t-font); color: var(--t-ink-3); }
 .t-door .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
 .t-door .tags span { height: 27px; padding: 0 10px; border-radius: 999px; background: var(--t-surface-2); font: 700 12.5px/27px var(--t-font); color: var(--t-ink-3); }
@@ -234,7 +234,7 @@ a.t-exam:hover .go { background: var(--t-app); color: #fff; }
 /* ── 서비스 고르기 판(아래에서 올라옴) ── */
 .t-sheet { position: fixed; inset: 0; z-index: 90; display: none; }
 .t-sheet.open { display: block; }
-.t-sheet .dim { position: absolute; inset: 0; background: rgba(17,20,25,.36); animation: t-fade .2s both; }
+.t-sheet .dim { position: absolute; inset: 0; background: rgba(18,48,45,.36); animation: t-fade .2s both; }
 .t-sheet .pan { position: absolute; left: 0; right: 0; bottom: 0; max-height: 86vh; overflow: auto; background: var(--t-bg); border-radius: 26px 26px 0 0; padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
   animation: t-up .28s var(--t-ease) both; }
 .t-sheet .grip { width: 40px; height: 4px; border-radius: 4px; background: var(--t-line-2); margin: 0 auto 16px; }
